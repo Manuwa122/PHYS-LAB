@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {buildDistinctApparatus} from "./lab-unique-scenes.js";
-import {createPremiumLab} from "./premium-lab-studio.js";
+import {createScienceLab} from "./science-lab-environment.js";
 /** True interactive WebGL 3D teaching scenes. Parametric equipment approximations, not scanned instrument replicas. */
 export function mountLab3D(host){
  const scene=new THREE.Scene();scene.background=new THREE.Color("#0b1427");
@@ -17,10 +17,10 @@ export function mountLab3D(host){
  const mat=(color,metalness=.15,roughness=.45,extra={})=>new THREE.MeshStandardMaterial({color,metalness,roughness,...extra});
  const metal=new THREE.MeshPhysicalMaterial({color:0xd3dee9,metalness:.92,roughness:.19,clearcoat:.32,clearcoatRoughness:.22}),dark=mat(0x1b2b3f,.52,.3),gold=new THREE.MeshPhysicalMaterial({color:0xdaa05c,metalness:.84,roughness:.24,clearcoat:.3}),glass=new THREE.MeshPhysicalMaterial({color:0xb4edff,metalness:0,roughness:.09,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide,clearcoat:.9,clearcoatRoughness:.08}),water=new THREE.MeshPhysicalMaterial({color:0x35b7e8,metalness:0,roughness:.1,transparent:true,opacity:.65,clearcoat:1}),purple=mat(0x987beb,.42,.29),green=mat(0x4de5af,.35,.25),red=mat(0xf9757b,.33,.27),white=mat(0xf4f4ff,.08,.4);
  const bench=new THREE.Group();scene.add(bench);
- const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0x0c1425));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
- const table=new THREE.Mesh(new THREE.BoxGeometry(9,.18,6),mat(0x283c5a,.2,.62));table.position.y=.09;table.receiveShadow=true;scene.add(table);
- const grid=new THREE.GridHelper(10,20,0x405473,0x26344e);grid.position.y=.193;grid.material.opacity=.24;grid.material.transparent=true;scene.add(grid);
- const disposeStudio=createPremiumLab(scene,renderer);
+ // Science lab environment supplies its own tiled floor.
+ // Science lab environment supplies its own wood worktop.
+ // The instrument bench is clear of overlay grid lines.
+ const disposeStudio=createScienceLab(scene,renderer);
  // Atmospheric school laboratory environment: workbench, tiled wall, shelves,
  // labelled glassware and soft overhead fluorescent lighting.
  const wallMaterial=mat(0x24344b,.05,.9),woodMaterial=mat(0x735443,.2,.7);
