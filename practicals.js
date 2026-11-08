@@ -1,4 +1,5 @@
 import {practicals,NIE_HANDBOOK} from "./practicals-data.js";
+import {paintApparatus} from "./apparatus.js";
 const $=id=>document.getElementById(id);
 const modelSpecs={
 vernier:[["Main scale (mm)",21,0,90,1],["Coinciding division",4,0,9,1],["Least count (mm)",0.1,.01,.1,.01]],
@@ -33,6 +34,15 @@ young:[["Force (N)",12,2,30,1],["Wire length (m)",2,.5,3,.1],["Wire diameter (mm
 viscosity:[["Tube radius (mm)",.5,.2,1,.05],["Pressure difference (Pa)",180,50,500,10],["Flow time (s)",60,10,120,5],["Tube length (m)",.5,.1,1,.05],["Collected volume (mL)",12,2,60,1]],
 tension:[["Capillary rise (cm)",2,0.5,8,.1],["Capillary radius (mm)",.5,.1,2,.1],["Liquid density (kg/m³)",1000,700,1200,10]]
 };
+Object.assign(modelSpecs,{
+cooling:[["Initial temperature (°C)",80,40,100,1],["Room temperature (°C)",25,10,35,1],["Cooling constant (1/min)",.09,.01,.3,.01],["Elapsed time (min)",10,0,40,1]],
+fusion:[["Water mass (kg)",.3,.1,.8,.05],["Starting water temperature (°C)",35,20,60,1],["Final temperature (°C)",10,1,20,1],["Ice mass (kg)",.08,.02,.2,.01]],
+vapor:[["Water mass (kg)",.3,.1,.8,.05],["Starting temperature (°C)",25,15,50,1],["Final temperature (°C)",45,30,70,1],["Steam mass (kg)",.015,.005,.04,.005]],
+humidity:[["Ambient temperature (°C)",30,15,40,1],["Dew point (°C)",22,5,35,1]],
+concave:[["Object distance (cm)",30,15,80,1],["Virtual-image distance (cm)",12,4,35,1]],
+slide:[["Force (mN)",12,1,25,.5],["Slide width (cm)",7,2,12,.5]],
+jaeger:[["Threshold pressure (Pa)",1650,600,2500,25],["Liquid depth (cm)",12,2,20,1],["Tube radius (mm)",.4,.1,1,.05],["Liquid density (kg/m³)",1000,700,1200,10]]
+});
 let selected="10",language="en",params=[],values=[],anim=0;
 const cats=[...new Set(practicals.map(x=>x.category))];
 for(const cat of cats){let opt=document.createElement("option");opt.value=cat;opt.textContent=cat;$("category").append(opt)}
@@ -77,15 +87,23 @@ case "gates":return ["Logic output",[a&b,a|b,1-(a&b),1-(a|b),a^b][c],"0 or 1"];
 case "young":return ["Young's modulus",a*b/(pi*(c/2000)**2*(d/1000)),"Pa"];
 case "viscosity":return ["Dynamic viscosity",pi*(a/1000)**4*b*c/(8*d*(e/1e6)),"Pa·s"];
 case "tension":return ["Surface tension (cosθ = 1)",(a/100)*c*9.81*(b/1000)/2,"N/m"];
+case "cooling":return ["Temperature after t",b+(a-b)*Math.exp(-c*d),"°C"];
+case "fusion":return ["Estimated latent heat of fusion",(a*4200*(b-c)-d*4200*c)/d,"J/kg"];
+case "vapor":return ["Estimated latent heat of vaporization",(a*4200*(c-b)-d*4200*(100-c))/d,"J/kg"];
+case "humidity":return ["Relative humidity (Magnus approx.)",100*Math.exp((17.625*b)/(243.04+b)-(17.625*a)/(243.04+a)),"%"];
+case "concave":return ["Focal length (signed)",-(a*b)/(a-b),"cm"];
+case "slide":return ["Surface tension (two faces)",(a/1000)/(2*b/100),"N/m"];
+case "jaeger":return ["Surface tension (ideal)",((a-d*9.81*b/100)*(c/1000)/2),"N/m"];
 default:return null;
 }}
 function round(n){if(!Number.isFinite(n))return "Invalid inputs";if(Math.abs(n)>1e5||Math.abs(n)<.0001&&n!==0)return n.toExponential(3);return Number(n.toFixed(5)).toString()}
 function show(){const p=practicals.find(x=>x.id===selected);if(!p)return;const spec=modelSpecs[p.model];params=spec||[];values=params.map(x=>x[1]);const detail=$("detail");detail.innerHTML="";
-const top=document.createElement("div");top.className="detailtop";top.innerHTML='<span class="tag">PRACTICAL #'+p.id+'</span><span class="tag"></span>';top.lastElementChild.textContent=spec?t("LIVE NUMERICAL MODEL","සජීවී ගණිතමය ආකෘතිය"):t("GUIDED WORKSHEET","අධ්‍යයන වාර්තාව");detail.append(top);
+const top=document.createElement("div");top.className="detailtop";top.innerHTML='<span class="tag">PRACTICAL #'+p.id+'</span><span class="tag"></span>';top.lastElementChild.textContent=spec?t("ANIMATED APPARATUS","සජීවී උපකරණ අනුකරණය"):t("GUIDED WORKSHEET","අධ්‍යයන වාර්තාව");detail.append(top);
 const h=document.createElement("h2");h.className="title";h.textContent=p.title;detail.append(h);
 const sub=document.createElement("p");sub.className="muted";sub.textContent=p.category+" • "+t("Based on NIE's numbered list, not a substitute for the official experimental method.","NIE පරීක්ෂණ ලැයිස්තුව ඇසුරින්. නිල ක්‍රමවේදයට ආදේශයක් නොවේ.");detail.append(sub);
-const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Educational idealized model: vary inputs and compare calculated predictions. Apparatus and readings are schematic, not a faithful recreation of the real equipment.","අධ්‍යයන ගණිතමය ආකෘතියකි. මෙහි සටහන් සැබෑ උපකරණ කියවීම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
+const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Animated apparatus and adjustable parameters provide idealized illustrations. They are not real measurements or certified apparatus simulators.","උපකරණ අනුකරණ සහ පාලක අගයන් අධ්‍යයන ආකෘති පමණි; සැබෑ මිනුම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
 if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><canvas class="labcanvas" id="labcanvas"></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+const transport=document.createElement("div");transport.className="simtransport";const toggle=document.createElement("button");toggle.type="button";toggle.textContent="Ⅱ Pause";toggle.onclick=()=>{motion=!motion;toggle.textContent=motion?"Ⅱ Pause":"▶ Play";draw()};const restart=document.createElement("button");restart.type="button";restart.textContent="↺ Restart";restart.onclick=()=>{anim=0;motion=true;show()};transport.append(toggle,restart);lab.append(transport);
 spec.forEach((s,i)=>{const label=document.createElement("label");const title=document.createElement("span");title.textContent=s[0];let val=document.createElement("b");val.textContent=s[1];let input=document.createElement("input");input.type="range";input.min=s[2];input.max=s[3];input.step=s[4];input.value=s[1];input.oninput=()=>{values[i]=Number(input.value);val.textContent=values[i];update()};label.append(title,val,input);$("sliders").append(label)});update();
 }
 const theory=document.createElement("h3");theory.textContent=t("Core relation / theory","මූලික සමීකරණය / න්‍යාය");detail.append(theory);const formula=document.createElement("div");formula.className="formula";formula.textContent=p.formula;detail.append(formula);
@@ -99,16 +117,7 @@ let source=document.createElement("a");source.href=NIE_HANDBOOK;source.target="_
 let safety=document.createElement("p");safety.className="muted";safety.textContent=t("For demonstrations involving heated liquids, electricity, glassware or instruments, follow your teacher's instructions. This virtual model cannot replace practical skills.","උණුසුම් ද්‍රව්‍ය, විදුලිය, වීදුරු උපකරණ සහ මිනුම් උපකරණ භාවිතයේදී ගුරු උපදෙස් අනුගමනය කරන්න.");detail.append(safety);
 }
 function update(){const p=practicals.find(x=>x.id===selected);const out=computed(p,values);if(out)$("out").textContent=out[0]+": "+round(out[1])+" "+out[2];draw()}
-function draw(){const canvas=$("labcanvas");if(!canvas)return;const w=canvas.clientWidth,h=canvas.clientHeight,d=Math.min(devicePixelRatio||1,2);if(!w)return;canvas.width=w*d;canvas.height=h*d;const c=canvas.getContext("2d");c.setTransform(d,0,0,d,0,0);c.fillStyle="#101a30";c.fillRect(0,0,w,h);c.lineWidth=1;c.strokeStyle="#1e2e4b";for(let x=20;x<w;x+=28){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke()}for(let y=12;y<h;y+=28){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke()}const p=practicals.find(x=>x.id===selected),model=p.model;
-const line=(x,y,X,Y,color="#b29cff",lw=3)=>{c.beginPath();c.moveTo(x,y);c.lineTo(X,Y);c.strokeStyle=color;c.lineWidth=lw;c.stroke()};const disk=(x,y,r,color)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=color;c.fill()};c.font="12px Inter,Arial";c.fillStyle="#cdd8ee";
-if(model==="pendulum"){let L=Math.min(170,55+values[0]*65),ang=.4*Math.cos(anim*2*Math.PI/Math.max(.5,values[1])),cx=w/2;line(cx,30,cx+L*Math.sin(ang),30+L*Math.cos(ang));disk(cx+L*Math.sin(ang),30+L*Math.cos(ang),16,"#a68fff");disk(cx,30,5,"#e9d6ff");c.fillText("L = "+values[0]+" m",18,h-22)}
-else if(model==="spring"){let x=w/2,top=35,bot=160+values[0]*60;line(x-50,top,x+50,top,"#8299bb",3);c.beginPath();c.moveTo(x,top);for(let i=0;i<=22;i++)c.lineTo(x+(i===0||i===22?0:(i%2===0?20:-20)),top+i*(bot-top)/22);c.strokeStyle="#ac94ff";c.lineWidth=3;c.stroke();c.fillStyle="#bd90f9";c.fillRect(x-25,bot,50,42)}
-else if(model==="utube"){let cx=w/2,h1=values[0]*4,h2=values[1]*4;line(cx-62,45,cx-62,220,"#aabbd6",5);line(cx+62,45,cx+62,220,"#aabbd6",5);line(cx-62,220,cx+62,220,"#aabbd6",5);c.fillStyle="#66d3e8";c.fillRect(cx-57,220-h1,26,h1);c.fillStyle="#b08aff";c.fillRect(cx+30,220-h2,27,h2);c.fillText("h₁",cx-80,215-h1);c.fillText("h₂",cx+70,215-h2)}
-else if(model==="forces"||model==="moments"){let cx=w/2,cy=175;if(model==="forces"){let a=values[2]*Math.PI/180;line(cx,cy,cx+values[0]*12,cy,"#67ddc1",4);line(cx,cy,cx+values[1]*12*Math.cos(a),cy-values[1]*12*Math.sin(a),"#fdad83",4);disk(cx,cy,6,"#fff");c.fillText("P",cx+values[0]*12+7,cy);c.fillText("Q",cx+values[1]*12*Math.cos(a),cy-values[1]*12*Math.sin(a)-10)}else{line(60,110,w-60,110,"#a9c6e5",7);disk(w/2,122,12,"#aa8cfb");line(w/2-values[1]*2,110,w/2-values[1]*2,185,"#ffa577",3);line(w/2+values[2]*2,110,w/2+values[2]*2,185,"#77e9cf",3)}}
-else if(model==="lens"||model==="prism"||model==="refractive"||model==="critical"){let mid=h/2;line(12,mid,w-12,mid,"#5d7297",1);if(model==="lens"){line(w/2,30,w/2,h-20,"#8cc4ef",4);let u=values[0],v=values[1];let scale=Math.min((w/2-40)/Math.max(u,v),3);let ox=w/2-u*scale,ix=w/2+v*scale;line(ox,mid,ox,mid-60,"#ffb787",4);line(ix,mid,ix,mid+60*v/u,"#8fe1d0",4);line(ox,mid-60,w/2,mid-60,"#b59aff",2);line(w/2,mid-60,ix,mid+60*v/u,"#b59aff",2)}else{c.beginPath();c.moveTo(w/2,58);c.lineTo(w/2-80,204);c.lineTo(w/2+80,204);c.closePath();c.fillStyle="#524b9b77";c.fill();line(20,mid,w/2-50,mid,"#ffb579",3);line(w/2-50,mid,w-40,mid-55,"#ffb579",3)}}
-else if(model==="gates"){let mid=w/2,cy=h/2;c.fillStyle="#2b305d";c.fillRect(mid-70,cy-60,140,120);c.fillStyle="#e3deff";c.font="22px Inter";c.fillText(["AND","OR","NAND","NOR","XOR"][values[2]],mid-50,cy+8);line(mid-120,cy-25,mid-70,cy-25);line(mid-120,cy+25,mid-70,cy+25);line(mid+70,cy,mid+128,cy);c.font="13px Inter";c.fillText("A="+values[0],mid-170,cy-28);c.fillText("B="+values[1],mid-170,cy+21);c.fillText("Y="+computed(p,values)[1],mid+133,cy+5)}
-else if(model==="vernier"||model==="micrometer"||model==="spherometer"){c.fillStyle="#ced5e3";c.fillRect(40,105,w-80,20);for(let i=0;i<26;i++)line(40+i*(w-80)/26,105,40+i*(w-80)/26,105+(i%5===0?24:14),"#101d34",1);let pos=40+(values[0]/(model==="vernier"?90:model==="micrometer"?25:60))*(w-95);c.fillStyle="#a18bff";c.fillRect(Math.min(w-60,pos),90,35,68);c.fillStyle="#c9d6f7";c.fillText("Main scale",40,74);c.fillText("Read the aligned scale & least count",40,194)}
-else{let result=computed(p,values),normalized=Math.max(0,Math.min(1,Math.abs(result?.[1]||0)/(Math.abs(result?.[1]||1)*1.4)));let cx=w/2;line(40,210,w-40,210,"#879bbd",2);c.beginPath();for(let i=0;i<=150;i++){let x=40+(w-80)*i/150,y=210-125*Math.exp(-Math.pow((i/150-(.2+normalized*.45))*5,2));if(i===0)c.moveTo(x,y);else c.lineTo(x,y)}c.strokeStyle="#a992ff";c.lineWidth=4;c.stroke();disk(40+(w-80)*(.2+normalized*.45),85,7,"#ffb58b");c.fillStyle="#a9bbd8";c.fillText("Idealized relationship preview",22,36)}
-}
-function tick(){anim+=.025;if($("labcanvas"))draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);
+function draw(){const canvas=$("labcanvas");if(!canvas)return;const p=practicals.find(x=>x.id===selected);if(p)paintApparatus(canvas,p,values,anim)}
+let motion=true;
+function tick(){if(motion)anim+=.025;if($("labcanvas")&&motion)draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);
 drawList();show();
