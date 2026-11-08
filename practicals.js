@@ -113,7 +113,7 @@ const workbenchMount=p.id==="03"?document.createElement("div"):null;if(workbench
 const host=$("lab3d"),twoD=$("labcanvas");
 const dragPanel=document.createElement("div");dragPanel.className="drag-help";
 const dragHeading=document.createElement("strong");dragHeading.textContent="✋ Interactive equipment setup";
-const dragInfo=document.createElement("span");dragInfo.textContent="3D view: drag the movable test object from the storage tray into the green work zone. Drag empty space to rotate the camera.";
+const dragInfo=document.createElement("span");dragInfo.textContent="3D view: pick up two separate equipment parts from their storage trays and drag each to its highlighted work zone. Drag empty space to rotate the camera.";
 const dragControls=document.createElement("div");dragControls.className="drag-toolbar";
 const moveMode=document.createElement("button");moveMode.type="button";moveMode.className="chosen";moveMode.textContent="✋ Move equipment";
 const orbitMode=document.createElement("button");orbitMode.type="button";orbitMode.textContent="◌ Orbit camera";
@@ -122,7 +122,7 @@ const dragStatus=document.createElement("p");dragStatus.className="drag-status";
 dragControls.append(moveMode,orbitMode,resetSetup);dragPanel.append(dragHeading,dragInfo,dragControls,dragStatus);
 lab.append(dragPanel);
 function showDragStatus(e){if(e.type==="selected")dragStatus.textContent="Holding "+e.name+". Drag to the highlighted green work zone.";
-else if(e.type==="placed")dragStatus.textContent="✓ "+e.name+" placed in work zone! Experiment setup completed.";
+else if(e.type==="placed")dragStatus.textContent="✓ "+e.name+" placed correctly. "+(e.remaining===0?"Both equipment parts positioned. Setup exercise complete.":e.remaining+" equipment part(s) still to place.");
 else if(e.type==="released")dragStatus.textContent=e.name+" released outside target. Move it closer to the green work zone.";
 else if(e.type==="reset")dragStatus.textContent="Equipment moved back to storage tray. Try the setup again."}
 moveMode.onclick=()=>{threeLab?.setDragEnabled(true);moveMode.classList.add("chosen");orbitMode.classList.remove("chosen");dragStatus.textContent="Move mode: drag the specimen; drag empty space to rotate."};
