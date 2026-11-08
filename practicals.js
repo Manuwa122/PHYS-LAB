@@ -46,7 +46,8 @@ concave:[["Object distance (cm)",30,15,80,1],["Virtual-image distance (cm)",12,4
 slide:[["Force (mN)",12,1,25,.5],["Slide width (cm)",7,2,12,.5]],
 jaeger:[["Threshold pressure (Pa)",1650,600,2500,25],["Liquid depth (cm)",12,2,20,1],["Tube radius (mm)",.4,.1,1,.05],["Liquid density (kg/m³)",1000,700,1200,10]]
 });
-let selected="10",language="en",params=[],values=[],anim=0;
+const initialPractical=new URLSearchParams(location.search).get("practical");
+let selected=practicals.some(p=>p.id===initialPractical)?initialPractical:"10",language="en",params=[],values=[],anim=0;
 let threeLab=null,viewMode="3d";
 const cats=[...new Set(practicals.map(x=>x.category))];
 for(const cat of cats){let opt=document.createElement("option");opt.value=cat;opt.textContent=cat;$("category").append(opt)}
@@ -57,7 +58,7 @@ $("language").onclick=()=>{language=language==="en"?"si":"en";translate()};
 function drawList(){const search=$("search").value.toLowerCase(),cat=$("category").value,status=$("status").value;
 const items=practicals.filter(x=>(cat==="All"||x.category===cat)&&(status==="all"||(status==="model")===!!modelSpecs[x.model])&&(x.title+" "+x.id+" "+x.category).toLowerCase().includes(search));
 $("count").textContent=items.length+" / "+practicals.length;
-$("cards").replaceChildren(...items.map(x=>{let b=document.createElement("button");b.className="item"+(selected===x.id?" selected":"");b.innerHTML='<span class="num">'+x.id+'</span><span><strong></strong><small></small></span>';b.querySelector("strong").textContent=x.title;b.querySelector("small").textContent=x.category+" · "+(modelSpecs[x.model]?t("Numerical model","ගණිතමය අනුකරණය"):t("Guided worksheet","වාර්තා පත්‍රය"));b.onclick=()=>{selected=x.id;drawList();show();if(innerWidth<951)$("detail").scrollIntoView({behavior:"smooth"})};return b}))}
+$("cards").replaceChildren(...items.map(x=>{let b=document.createElement("button");b.className="item"+(selected===x.id?" selected":"");b.innerHTML='<span class="num">'+x.id+'</span><span><strong></strong><small></small></span>';b.querySelector("strong").textContent=x.title;b.querySelector("small").textContent=x.category+" · "+(modelSpecs[x.model]?t("Numerical model","ගණිතමය අනුකරණය"):t("Guided worksheet","වාර්තා පත්‍රය"));b.onclick=()=>{selected=x.id;history.replaceState(null,"",location.pathname+"?practical="+encodeURIComponent(x.id));drawList();show();if(innerWidth<951)$("detail").scrollIntoView({behavior:"smooth"})};return b}))}
 ["search","category","status"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",drawList));
 function computed(p,v){const pi=Math.PI;const [a,b,c,d,e]=v;switch(p.model){
 case "vernier":return ["Measured length",a+b*c,"mm"];
