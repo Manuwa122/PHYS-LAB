@@ -18,7 +18,7 @@ export function mountLab3D(host){
  const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0x0c1425));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
  const table=new THREE.Mesh(new THREE.BoxGeometry(9,.18,6),mat(0x283c5a,.2,.62));table.position.y=.09;table.receiveShadow=true;scene.add(table);
  const grid=new THREE.GridHelper(10,20,0x405473,0x26344e);grid.position.y=.193;scene.add(grid);
- let objects=new THREE.Group();scene.add(objects),moving=[];
+ let objects=new THREE.Group();let moving=[];scene.add(objects);
  const add=(geo,m,x=0,y=0,z=0,parent=objects)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o};
  const box=(w,h,d,x,y,z,m=metal,parent=objects)=>add(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent);
  const sphere=(r,x,y,z,m=gold,parent=objects)=>add(new THREE.SphereGeometry(r,24,16),m,x,y,z,parent);
