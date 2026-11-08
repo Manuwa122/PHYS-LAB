@@ -36,3 +36,8 @@ This is an initial prototype, not a production LMS. Sinhala translations cover p
 - Metal/wood/glass material styling, mobile-friendly 3D render settings, and front/side/top camera views. Camera angle persists while adjusting controls.
 - Captured **simulated** readings can be charted as input vs predicted output. They are not real measurements and the plotted axes are generalized; consult each practical for the correct experimental graph.
 - More detailed 3D equipment, exact sensor behavior, interactive assembly, lab calibration, and full Sinhala translations remain future work.
+
+## Touch / mouse apparatus placement (November 2026)
+- 3D lab includes **two movable apparatus-related items per practical scene**, each with a highlighted destination area. Pick up using a mouse or finger, move horizontally across the workbench, and release to snap into the designated zone. An on-screen instruction panel indicates whether both parts are correctly positioned.
+- Switch between **Move equipment** and **Orbit camera**, or reset both pieces. The pick-and-place positions survive adjustments of existing numeric parameters.
+- This feature is an **initial equipment-placement exercise**. It does **not** yet let students assemble and operate every component of all 43 real-world experiments, check wiring, model lens collisions, detect physical contact, or grade the experimental procedure. Progressively add distinct apparatus interactions and validated constraints by practical.
