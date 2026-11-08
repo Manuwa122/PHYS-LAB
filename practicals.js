@@ -107,7 +107,29 @@ const notice=document.createElement("div");notice.className="notice";notice.text
 if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="resetcam">↺ Camera</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
 const host=$("lab3d"),twoD=$("labcanvas");
 const mode3d=$("mode3d"),mode2d=$("mode2d");
-function setView(mode){viewMode=mode;const three=mode==="3d";host.hidden=!three;twoD.hidden=three;mode3d.classList.toggle("active",three);mode2d.classList.toggle("active",!three);if(three){if(!threeLab){try{threeLab=mountLab3D(host);threeLab.update(p,values)}catch(err){host.textContent="WebGL 3D is unavailable on this device. Use 2D mode.";console.error(err);}}}else draw();}
+function setView(mode){
+ viewMode=mode;const three=mode==="3d";
+ host.hidden=!three;twoD.hidden=three;
+ mode3d.classList.toggle("active",three);mode2d.classList.toggle("active",!three);
+ if(!three){draw();return}
+ if(threeLab)return;
+ try{
+  threeLab=mountLab3D(host);threeLab.update(p,values);
+ }catch(err){
+  console.error("PHYS-LAB 3D initialization",err);
+  const detail=String(err?.message||err||"Unknown error").slice(0,240);
+  const reason=document.createElement("div");reason.className="renderer-warning";
+  const summary=document.createElement("strong");summary.textContent="3D initialization failed · "+detail;
+  const hint=document.createElement("p");hint.textContent="2D animation remains available. Copy the diagnostic below and share it for a targeted fix.";
+  const copy=document.createElement("button");copy.type="button";copy.textContent="Copy error details";
+  copy.onclick=()=>navigator.clipboard?.writeText("PHYS-LAB 3D: "+detail+" | "+navigator.userAgent);
+  reason.append(summary,hint,copy);
+  host.replaceChildren(reason);
+  viewMode="2d";host.hidden=true;twoD.hidden=false;mode3d.classList.remove("active");mode2d.classList.add("active");
+  const alert=document.createElement("div");alert.className="renderer-alert";alert.append(reason);
+  lab.insertBefore(alert,lab.querySelector(".sliders"));draw();
+ }
+}
 mode3d.onclick=()=>setView("3d");mode2d.onclick=()=>setView("2d");
 $("resetcam").onclick=()=>threeLab?.resetCamera();
 setView(viewMode);
