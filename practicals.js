@@ -50,6 +50,16 @@ jaeger:[["Threshold pressure (Pa)",1650,600,2500,25],["Liquid depth (cm)",12,2,2
 const initialPractical=new URLSearchParams(location.search).get("practical");
 let selected=practicals.some(p=>p.id===initialPractical)?initialPractical:"10",language="en",params=[],values=[],anim=0;
 let threeLab=null,viewMode="3d";
+const progressStorageKey="physlab-practicals-completed-v1";
+let completedIds=new Set();
+try{
+ const stored=JSON.parse(localStorage.getItem(progressStorageKey)||"[]");
+ if(Array.isArray(stored))completedIds=new Set(stored.filter(id=>practicals.some(p=>p.id===id)));
+}catch{}
+function saveProgress(){
+ try{localStorage.setItem(progressStorageKey,JSON.stringify([...completedIds]))}catch{}
+}
+
 const cats=[...new Set(practicals.map(x=>x.category))];
 for(const cat of cats){let opt=document.createElement("option");opt.value=cat;opt.textContent=cat;$("category").append(opt)}
 $("modelCount").textContent=practicals.filter(x=>modelSpecs[x.model]).length;
@@ -59,7 +69,7 @@ $("language").onclick=()=>{language=language==="en"?"si":"en";translate()};
 function drawList(){const search=$("search").value.toLowerCase(),cat=$("category").value,status=$("status").value;
 const items=practicals.filter(x=>(cat==="All"||x.category===cat)&&(status==="all"||(status==="model")===!!modelSpecs[x.model])&&(x.title+" "+x.id+" "+x.category).toLowerCase().includes(search));
 $("count").textContent=items.length+" / "+practicals.length;
-$("cards").replaceChildren(...items.map(x=>{let b=document.createElement("button");b.className="item"+(selected===x.id?" selected":"");b.innerHTML='<span class="num">'+x.id+'</span><span><strong></strong><small></small></span>';b.querySelector("strong").textContent=x.title;b.querySelector("small").textContent=x.category+" · "+(modelSpecs[x.model]?t("Custom 3D apparatus","වෙනස් 3D උපකරණ"):t("Guided worksheet","වාර්තා පත්‍රය"));b.onclick=()=>{selected=x.id;history.replaceState(null,"",location.pathname+"?practical="+encodeURIComponent(x.id));drawList();show();if(innerWidth<951)$("detail").scrollIntoView({behavior:"smooth"})};return b}))}
+$("cards").replaceChildren(...items.map(x=>{let b=document.createElement("button");b.className="item"+(selected===x.id?" selected":"");b.innerHTML='<span class="num">'+x.id+'</span><span><strong></strong><small></small></span>';b.querySelector("strong").textContent=x.title;b.querySelector("small").textContent=x.category+" · "+(modelSpecs[x.model]?t("Custom 3D apparatus","වෙනස් 3D උපකරණ"):t("Guided worksheet","වාර්තා පත්‍රය"));if(completedIds.has(x.id)){b.classList.add("completed");b.querySelector("small").textContent+=" · ✓ Completed"}b.onclick=()=>{selected=x.id;history.replaceState(null,"",location.pathname+"?practical="+encodeURIComponent(x.id));drawList();show();if(innerWidth<951)$("detail").scrollIntoView({behavior:"smooth"})};return b}))}
 ["search","category","status"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",drawList));
 function computed(p,v){const pi=Math.PI;const [a,b,c,d,e]=v;switch(p.model){
 case "vernier":return ["Measured length",a+b*c,"mm"];
@@ -106,9 +116,22 @@ function round(n){if(!Number.isFinite(n))return "Invalid inputs";if(Math.abs(n)>
 function show(){if(threeLab){threeLab.dispose();threeLab=null}const p=practicals.find(x=>x.id===selected);if(!p)return;const spec=modelSpecs[p.model];params=spec||[];values=params.map(x=>x[1]);const detail=$("detail");detail.innerHTML="";detail.dataset.category=p.category.replace(/[^a-z]+/gi,"-").toLowerCase();
 const top=document.createElement("div");top.className="detailtop";top.innerHTML='<span class="tag">PRACTICAL #'+p.id+'</span><span class="tag"></span>';top.lastElementChild.textContent=spec?t("UNIQUE 3D APPARATUS","වෙනස් 3D උපකරණ"):t("GUIDED WORKSHEET","අධ්‍යයන වාර්තාව");detail.append(top);
 const h=document.createElement("h2");h.className="title";h.textContent=p.title;detail.append(h);
+const progressRow=document.createElement("div");progressRow.className="learning-progress";
+const progressText=document.createElement("span");
+const completedButton=document.createElement("button");completedButton.type="button";completedButton.className="progress-toggle";
+function updateProgressLabel(){
+ progressText.textContent="My study progress: "+completedIds.size+" / "+practicals.length+" practicals";
+ completedButton.textContent=completedIds.has(p.id)?"✓ Studied · Mark incomplete":"○ Mark studied";
+ completedButton.setAttribute("aria-pressed",String(completedIds.has(p.id)));
+}
+completedButton.onclick=()=>{
+ if(completedIds.has(p.id))completedIds.delete(p.id);else completedIds.add(p.id);
+ saveProgress();updateProgressLabel();drawList();
+};
+updateProgressLabel();progressRow.append(progressText,completedButton);detail.append(progressRow);
 const sub=document.createElement("p");sub.className="muted";sub.textContent=p.category+" • "+t("Based on NIE's numbered list, not a substitute for the official experimental method.","NIE පරීක්ෂණ ලැයිස්තුව ඇසුරින්. නිල ක්‍රමවේදයට ආදේශයක් නොවේ.");detail.append(sub);
 const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Animated apparatus and adjustable parameters provide idealized illustrations. They are not real measurements or certified apparatus simulators.","උපකරණ අනුකරණ සහ පාලක අගයන් අධ්‍යයන ආකෘති පමණි; සැබෑ මිනුම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
-if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("3D Apparatus Studio","3D උපකරණ ශාලාව")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="frontcam">Front</button><button type="button" class="viewmode" id="sidecam">Side</button><button type="button" class="viewmode" id="topcam">Top</button><button type="button" class="viewmode" id="resetcam">↺ Reset View</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("3D Apparatus Studio","3D උපකරණ ශාලාව")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="frontcam">Front</button><button type="button" class="viewmode" id="sidecam">Side</button><button type="button" class="viewmode" id="topcam">Top</button><button type="button" class="viewmode" id="resetcam">↺ Reset View</button><button type="button" class="viewmode" id="graphicsmode">⚙ Graphics: Auto</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
 const workbenchMount=p.id==="03"?document.createElement("div"):null;if(workbenchMount)lab.after(workbenchMount);
 const host=$("lab3d"),twoD=$("labcanvas");
 const dragPanel=document.createElement("div");dragPanel.className="drag-help";
@@ -139,15 +162,17 @@ function setView(mode){
  try{
   threeLab=mountLab3D(host,{onError:error=>{
   const message=String(error?.message||error).slice(0,250);
+  try{threeLab?.dispose()}catch{}threeLab=null;
   dragStatus.textContent="3D render error: "+message+" — 2D mode available.";
   const warning=document.createElement("div");warning.className="renderer-alert";
   warning.textContent="3D rendering stopped: "+message+" · Please share this error. Switched to 2D animation.";
   lab.insertBefore(warning,lab.querySelector(".sliders"));
   viewMode="2d";host.hidden=true;twoD.hidden=false;
   mode3d.classList.remove("active");mode2d.classList.add("active");draw();
-}});threeLab.update(p,values);threeLab.setInteractionListener(showDragStatus);threeLab.setDragEnabled(!orbitMode.classList.contains("chosen"));
+}});threeLab.update(p,values);threeLab.setInteractionListener(showDragStatus);threeLab.setDragEnabled(!orbitMode.classList.contains("chosen"));$("graphicsmode").textContent="⚙ Graphics: "+threeLab.getQuality();
  }catch(err){
   console.error("PHYS-LAB 3D initialization",err);
+  try{threeLab?.dispose()}catch{}threeLab=null;
   const detail=String(err?.message||err||"Unknown error").slice(0,240);
   const reason=document.createElement("div");reason.className="renderer-warning";
   const summary=document.createElement("strong");summary.textContent="3D initialization failed · "+detail;
@@ -166,6 +191,13 @@ $("frontcam").onclick=()=>threeLab?.setCameraView("front");
 $("sidecam").onclick=()=>threeLab?.setCameraView("side");
 $("topcam").onclick=()=>threeLab?.setCameraView("top");
 $("resetcam").onclick=()=>threeLab?.resetCamera();
+$("graphicsmode").onclick=()=>{
+ if(!threeLab)return;
+ const modes=["eco","balanced","high"];
+ const next=modes[(modes.indexOf(threeLab.getQuality())+1)%modes.length];
+ $("graphicsmode").textContent="⚙ Graphics: "+threeLab.setQuality(next);
+ dragStatus.textContent=next==="eco"?"Low graphics quality selected for better mobile compatibility.":next==="high"?"High graphics quality selected. Switch to eco if performance drops.":"Balanced graphics quality selected.";
+};
 setView(viewMode);
 const transport=document.createElement("div");transport.className="simtransport";const toggle=document.createElement("button");toggle.type="button";toggle.textContent="Ⅱ Pause";toggle.onclick=()=>{motion=!motion;toggle.textContent=motion?"Ⅱ Pause":"▶ Play";draw()};const restart=document.createElement("button");restart.type="button";restart.textContent="↺ Restart";restart.onclick=()=>{anim=0;motion=true;show()};transport.append(toggle,restart);lab.append(transport);
 spec.forEach((s,i)=>{const label=document.createElement("label");const title=document.createElement("span");title.textContent=s[0];let val=document.createElement("b");val.textContent=s[1];let input=document.createElement("input");input.type="range";input.min=s[2];input.max=s[3];input.step=s[4];input.value=s[1];input.oninput=()=>{values[i]=Number(input.value);val.textContent=values[i];update()};label.append(title,val,input);$("sliders").append(label)});update();
