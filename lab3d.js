@@ -92,7 +92,7 @@ export function mountLab3D(host){
    selectedPointer=null;dragItem=null;
    interactionListener({type:placed?"placed":"released",name:item.name,placed,remaining:pickables.filter(it=>it.obj.position.distanceTo(it.target)>it.threshold).length});
  };
- renderer.domElement.addEventListener("pointerdown",onDown);
+ renderer.domElement.addEventListener("pointerdown",onDown,true);
  renderer.domElement.addEventListener("pointermove",onMove);
  renderer.domElement.addEventListener("pointerup",finishDrag);
  renderer.domElement.addEventListener("pointercancel",finishDrag);
@@ -410,7 +410,7 @@ export function mountLab3D(host){
  }else{box(3,.5,2,0,.65,0,metal);label(p.title,0,2.25,0)}
  }
  let initialized=false;
- function update(p,values){for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
+ function update(p,values){const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
  let active=true,frame=0,last=0;
  function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
  requestAnimationFrame(render);
@@ -423,6 +423,6 @@ export function mountLab3D(host){
  function setDragEnabled(value){dragEnabled=!!value;renderer.domElement.style.cursor=dragEnabled?"grab":"auto"}
  function resetEquipment(){for(const item of pickables)item.obj.position.copy(item.home);interactionListener({type:"reset",remaining:pickables.length})}
  function setInteractionListener(fn){interactionListener=typeof fn==="function"?fn:()=>{};return()=>{interactionListener=()=>{}}}
- function dispose(){active=false;controls.dispose();renderer.domElement.removeEventListener("pointerdown",onDown);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
+ function dispose(){active=false;controls.dispose();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
  return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,dispose};
 }
