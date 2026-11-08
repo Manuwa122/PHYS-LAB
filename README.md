@@ -59,3 +59,10 @@ This is an initial prototype, not a production LMS. Sinhala translations cover p
 - The previous dark back wall was removed to avoid obscuring the room. Physically based studio materials, apparatus-specific 3D arrangements, selectable camera views, and basic grab/drag snap stations remain.
 - New environment textures are procedurally drawn on canvas (no external images or texture CDN dependencies). This is an attractive stylized teaching lab, not an actual photographed university lab.
 - **Fidelity and completeness:** All 43 practical entries have individually selected apparatus compositions, but they are not certified 100% accurate replicas. Achieving true photorealism and full real-equipment interactions would require high-quality authored/scanned .glb equipment assets, reference dimensions, approved material textures, physics validation, and device-browser testing.
+
+## Final stability & learning improvements (November 2026)
+- Adaptive 3D graphics settings: **Eco, Balanced, High** with Balanced as default on mobile and High on desktops. iPhone/Android use lower pixel ratios and disable expensive shadow maps by default.
+- 3D geometry, labels and experiment-specific materials are cleaned up when control parameters change, reducing GPU memory accumulation. Lost WebGL contexts and frame errors produce an actionable error message and 2D fallback rather than a silently blank scene; the 3D view can be retried.
+- Personal study-progress tracking for the 43 practical entries: **Mark studied** toggles a practical as studied. Status is saved only in that browser's local storage and is not a verified practical assessment or cloud sync.
+- Added a graphics quality switch in the 3D viewer and responsive UI polish for study progress.
+- Quality assurance: JS syntax checks and Vercel build checks do not establish device compatibility. End-to-end browser testing on real iOS and Android devices is still necessary.
