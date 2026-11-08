@@ -1,6 +1,7 @@
 import {practicals,NIE_HANDBOOK} from "./practicals-data.js";
 import {paintApparatus} from "./apparatus.js";
 import {mountLab3D} from "./lab3d.js";
+import {guideFor} from "./practical-guides.js";
 const $=id=>document.getElementById(id);
 const modelSpecs={
 vernier:[["Main scale (mm)",21,0,90,1],["Coinciding division",4,0,9,1],["Least count (mm)",0.1,.01,.1,.01]],
@@ -136,6 +137,22 @@ setView(viewMode);
 const transport=document.createElement("div");transport.className="simtransport";const toggle=document.createElement("button");toggle.type="button";toggle.textContent="Ⅱ Pause";toggle.onclick=()=>{motion=!motion;toggle.textContent=motion?"Ⅱ Pause":"▶ Play";draw()};const restart=document.createElement("button");restart.type="button";restart.textContent="↺ Restart";restart.onclick=()=>{anim=0;motion=true;show()};transport.append(toggle,restart);lab.append(transport);
 spec.forEach((s,i)=>{const label=document.createElement("label");const title=document.createElement("span");title.textContent=s[0];let val=document.createElement("b");val.textContent=s[1];let input=document.createElement("input");input.type="range";input.min=s[2];input.max=s[3];input.step=s[4];input.value=s[1];input.oninput=()=>{values[i]=Number(input.value);val.textContent=values[i];update()};label.append(title,val,input);$("sliders").append(label)});update();
 }
+
+const guide=guideFor(p),study=document.createElement("section");
+study.className="study-guide";
+const header=document.createElement("div");header.className="study-heading";
+const badge=document.createElement("span");badge.className="tag";badge.textContent="PRACTICAL STUDY GUIDE";
+const heading=document.createElement("h3");heading.textContent=t("Aim & learning outcome","අරමුණ සහ ඉගෙනුම් ප්‍රතිඵලය");
+const aim=document.createElement("p");aim.textContent=guide.aim;header.append(badge,heading,aim);study.append(header);
+const panels=document.createElement("div");panels.className="guide-grid";
+function makePanel(title,items,ordered){const panel=document.createElement("section");panel.className="guide-panel";const h=document.createElement("h4");h.textContent=title;panel.append(h);const list=document.createElement(ordered?"ol":"ul");for(const v of items){const li=document.createElement("li");li.textContent=v;list.append(li)}panel.append(list);return panel}
+panels.append(makePanel(t("Equipment required","අවශ්‍ය උපකරණ"),guide.equipment,false));
+panels.append(makePanel(t("Procedure","පියවර"),guide.procedure,true));
+panels.append(makePanel(t("Precautions","සැලකිලිමත් විය යුතු කරුණු"),guide.precautions,false));
+panels.append(makePanel(t("Viva questions","ප්‍රායෝගික විභාග ප්‍රශ්න"),guide.questions,true));
+study.append(panels);
+const graphNote=document.createElement("p");graphNote.className="notice";graphNote.textContent=t("Suggested graph: ","යෝජිත ප්‍රස්ථාරය: ")+guide.graph;study.append(graphNote);
+detail.append(study);
 const theory=document.createElement("h3");theory.textContent=t("Core relation / theory","මූලික සමීකරණය / න්‍යාය");detail.append(theory);const formula=document.createElement("div");formula.className="formula";formula.textContent=p.formula;detail.append(formula);
 const method=document.createElement("h3");method.textContent=t("Guided practical workflow","පරීක්ෂණ ක්‍රියාපටිපාටිය");detail.append(method);let steps=document.createElement("ol");steps.className="steps";[t("Study the NIE handbook for this experiment's apparatus and safety precautions.","අවශ්‍ය උපකරණ සහ ආරක්ෂාව සඳහා NIE අත්පොත බලන්න."),t("Set up the equipment as instructed by your teacher; identify the variables and least counts.","ගුරුවරයාගේ මඟපෙන්වීම යටතේ උපකරණ සවි කර මිනුම් සීමා හඳුනාගන්න."),t("Measure several readings, repeat as needed, and record actual units.","මිනුම් කිහිපයක් නැවත නැවත ලබාගෙන ඒකක සහිතව සටහන් කරන්න."),t("Use the core relation to calculate the requested result; include uncertainty and a conclusion.","සමීකරණයෙන් ප්‍රතිඵල ගණනය කර දෝෂ/අවිනිශ්චිතතාව සහ නිගමනය ලියන්න.")].forEach(x=>{const li=document.createElement("li");li.textContent=x;steps.append(li)});detail.append(steps);
 const notes=document.createElement("h3");notes.textContent=t("Observation notebook","නිරීක්ෂණ වාර්තාව");detail.append(notes);
