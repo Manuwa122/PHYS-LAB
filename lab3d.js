@@ -219,10 +219,42 @@ export function mountLab3D(host){
   label("CENTRAL MICROMETER SCREW",1.68,2.7,.15);
   label(mode==="flat"?"FLAT REFERENCE":mode==="slide"?"MICROSCOPE SLIDE":mode==="concave"?"CONCAVE SURFACE":"CONVEX SURFACE",0,.28,2.2);
  }
+
+ function travellingMicroscope(v){
+   const steel=mat(0xd2dce7,.86,.2),black=mat(0x202935,.28,.45);
+   const optic=mat(0x6db8cc,.18,.12,{transparent:true,opacity:.55}),knob=mat(0xd29f52,.75,.28);
+   const navy=mat(0x263e55,.45,.44);
+   box(4.4,.3,2.75,0,.35,0,navy);
+   for(let x of [-1.65,1.65]){rod([x,.45,-.8],[x,.45,1],.1,steel)}
+   // Stable vertical graduated column, microscope carriage and lateral rack.
+   rod([-.85,.48,-.7],[-.85,3.7,-.7],.14,steel);
+   const vertical=Math.max(1.4,Math.min(3,1.25+(v[0]||21)*.028));
+   box(.75,.44,.77,-.85,vertical,-.7,black);
+   box(2.8,.16,.28,.45,vertical,-.7,steel);
+   for(let j=0;j<23;j++){
+    const y=.72+j*.125;box(.22,.012,.035,-.85,y,-.51,j%5===0?black:steel)
+   }
+   let horizontal=Math.max(-.2,Math.min(1.2,(v[1]||4)*.06));
+   let tube=cyl(.38,.38,1.6,.6+horizontal,vertical,-.7,black);
+   tube.rotation.z=Math.PI/2;
+   let objective=cyl(.29,.29,.42,1.53+horizontal,vertical,-.7,steel);objective.rotation.z=Math.PI/2;
+   let eyepiece=cyl(.43,.43,.42,-.38+horizontal,vertical,-.7,steel);eyepiece.rotation.z=Math.PI/2;
+   let eyeglass=cyl(.34,.34,.018,-.64+horizontal,vertical,-.7,optic);eyeglass.rotation.z=Math.PI/2;
+   for(let i=0;i<2;i++)cyl(.18,.18,.15,-.7,vertical+.32+i*.32,-.15,knob).rotation.x=Math.PI/2;
+   box(1.8,.14,1.6,.8,.63,.05,steel);
+   box(1.48,.09,1.22,.8,.73,.05,optic);
+   // specimen with visible crosshair focusing reference
+   line2();
+   function line2(){rod([.5,.79,.05],[1.15,.79,.05],.009,knob);rod([.82,.79,-.24],[.82,.79,.34],.009,knob)}
+   label("TRAVELLING MICROSCOPE",0,4.08,0);
+   label("VERTICAL VERNIER SCALE",-1.4,3.35,0);
+   label("FOCUS / HORIZONTAL CARRIAGE",1.1,2.55,0);
+ }
  function apparatus(p,v){
  moving=[];const n=p.id;
  const style=p.model;
  // every scene uses an apparatus-dependent 3D configuration
+ if(p.id==="04"){travellingMicroscope(v);return}
  if(style==="spherometer"){spherometerInstrument(v);return}
  if(style==="vernier"){realisticVernier(v);return}
  if(style==="micrometer"){realisticMicrometer(v);return}
