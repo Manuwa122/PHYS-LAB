@@ -11,3 +11,20 @@
 .lab3d::after{content:"DRAG TO ROTATE · SCROLL / PINCH TO ZOOM";position:absolute;pointer-events:none;left:15px;bottom:13px;font-size:10px;letter-spacing:1px;background:#0b1224bb;color:#cdd8ed;padding:6px 9px;border-radius:6px}
 .labhead strong{letter-spacing:.3px}
 @media(max-width:650px){.lab3d{height:330px}.viewmode{font-size:11px;padding:9px}.viewcontrols{gap:5px}}
+
+/* Practical detail panels / interactive learning */
+.study-guide{padding-top:14px;margin-top:23px;border-top:1px solid #2d3d5c}
+.study-heading{padding:20px;border-radius:17px;background:linear-gradient(125deg,#282551,#172340);border:1px solid #524c80}
+.study-heading h3{font-size:21px;margin:13px 0 7px;color:#f4f0ff}
+.study-heading p{margin:0;line-height:1.75;color:#bfcbe2;font-size:14px}
+.guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:15px 0}
+.guide-panel{background:linear-gradient(150deg,#182640,#111a2f);border:1px solid #354564;border-radius:15px;padding:18px}
+.guide-panel h4{font-size:14px;margin:2px 0 15px;color:#dcd3ff;letter-spacing:.2px}
+.guide-panel ol,.guide-panel ul{font-size:12px;line-height:1.82;color:#b9c8df;padding-left:19px;margin:0}
+.guide-panel li{margin:8px 0}
+.guide-panel li::marker{color:#ac92ff}
+.labcard{box-shadow:0 14px 45px #00000030;border-color:#51457c}
+.labhead{background:linear-gradient(90deg,#302554,#151e35)}
+.lab3d{background:radial-gradient(ellipse at 50% 40%,#344d6e,#111a2b)}
+#out{font-size:15px;font-weight:600}
+@media(max-width:650px){.guide-grid{grid-template-columns:1fr}.study-heading{padding:16px}.guide-panel{padding:17px}}
