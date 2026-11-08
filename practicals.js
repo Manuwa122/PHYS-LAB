@@ -2,11 +2,12 @@ import {practicals,NIE_HANDBOOK} from "./practicals-data.js";
 import {paintApparatus} from "./apparatus.js";
 import {mountLab3D} from "./lab3d.js";
 import {guideFor} from "./practical-guides.js";
+import {attachSpherometerWorkbench} from "./spherometer-workbench.js";
 const $=id=>document.getElementById(id);
 const modelSpecs={
 vernier:[["Main scale (mm)",21,0,90,1],["Coinciding division",4,0,9,1],["Least count (mm)",0.1,.01,.1,.01]],
 micrometer:[["Pitch scale (mm)",4.5,0,25,.5],["Circular division",28,0,49,1],["Least count (mm)",.01,.005,.02,.005]],
-spherometer:[["Leg distance (mm)",30,10,60,1],["Sagitta (mm)",.6,.1,3,.1]],
+spherometer:[["Leg spacing a (mm)",30,10,60,1],["Screw displacement h (mm)",0,0,3,.01]],
 forces:[["Force P (N)",5,1,20,.5],["Force Q (N)",8,1,20,.5],["Angle (degrees)",70,10,170,1]],
 moments:[["Load 1 (N)",3,1,15,.5],["Arm 1 (cm)",30,5,80,1],["Arm 2 (cm)",20,5,80,1]],
 utube:[["Reference height (cm)",12,2,30,.5],["Other height (cm)",15,2,30,.5],["Reference density (kg/m³)",1000,700,1300,10]],
@@ -61,7 +62,7 @@ $("cards").replaceChildren(...items.map(x=>{let b=document.createElement("button
 function computed(p,v){const pi=Math.PI;const [a,b,c,d,e]=v;switch(p.model){
 case "vernier":return ["Measured length",a+b*c,"mm"];
 case "micrometer":return ["Measured dimension (uncorrected)",a+b*c,"mm"];
-case "spherometer":return ["Radius of curvature",a*a/(6*b)+b/2,"mm"];
+case "spherometer":return b>0?["Idealized radius of curvature",a*a/(6*b)+b/2,"mm"]:["Sagitta (calibrate and select surface first)",0,"mm"];
 case "forces":return ["Resultant force",Math.sqrt(a*a+b*b+2*a*b*Math.cos(c*pi/180)),"N"];
 case "moments":return ["Balancing load (ideal)",a*b/c,"N"];
 case "utube":return ["Second liquid density",c*a/b,"kg/m³"];
@@ -106,6 +107,7 @@ const h=document.createElement("h2");h.className="title";h.textContent=p.title;d
 const sub=document.createElement("p");sub.className="muted";sub.textContent=p.category+" • "+t("Based on NIE's numbered list, not a substitute for the official experimental method.","NIE පරීක්ෂණ ලැයිස්තුව ඇසුරින්. නිල ක්‍රමවේදයට ආදේශයක් නොවේ.");detail.append(sub);
 const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Animated apparatus and adjustable parameters provide idealized illustrations. They are not real measurements or certified apparatus simulators.","උපකරණ අනුකරණ සහ පාලක අගයන් අධ්‍යයන ආකෘති පමණි; සැබෑ මිනුම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
 if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="frontcam">Front</button><button type="button" class="viewmode" id="sidecam">Side</button><button type="button" class="viewmode" id="topcam">Top</button><button type="button" class="viewmode" id="resetcam">↺ Reset View</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+const workbenchMount=p.id==="03"?document.createElement("div"):null;if(workbenchMount)lab.after(workbenchMount);
 const host=$("lab3d"),twoD=$("labcanvas");
 const mode3d=$("mode3d"),mode2d=$("mode2d");
 function setView(mode){
@@ -188,6 +190,28 @@ if(spec){const capture=document.createElement("button");capture.type="button";ca
 let reset=document.createElement("button");reset.className="secondary";reset.textContent=t("Clear worksheet","වාර්තාව මකන්න");reset.onclick=()=>{document.querySelectorAll("#trials input").forEach(x=>x.value="");samples.length=0;plotSamples()};actions.append(reset);
 let source=document.createElement("a");source.href=NIE_HANDBOOK;source.target="_blank";source.rel="noopener noreferrer";source.textContent=t("Open official NIE guide ↗","NIE අත්පොත බලන්න ↗");actions.append(source);detail.append(actions);
 let safety=document.createElement("p");safety.className="muted";safety.textContent=t("For demonstrations involving heated liquids, electricity, glassware or instruments, follow your teacher's instructions. This virtual model cannot replace practical skills.","උණුසුම් ද්‍රව්‍ය, විදුලිය, වීදුරු උපකරණ සහ මිනුම් උපකරණ භාවිතයේදී ගුරු උපදෙස් අනුගමනය කරන්න.");detail.append(safety);
+if(p.id==="03"&&workbenchMount){
+ $("sliders").children[1]?.setAttribute("hidden","");
+ attachSpherometerWorkbench(workbenchMount,{
+   getValues:()=>values.slice(),
+   setSurface:mode=>{threeLab?.setSurfaceMode(mode);if(threeLab)threeLab.update(p,values)},
+   setValues:(next,mode)=>{
+     values=next;
+     const label=$("sliders")?.children[0]?.querySelector("b");if(label)label.textContent=String(next[0]);
+     if(threeLab){threeLab.setSurfaceMode(mode);threeLab.update(p,values)}
+     const out=computed(p,values);if(out)$("out").textContent=out[0]+": "+round(out[1])+" "+out[2];
+     if(viewMode==="2d")draw();
+   },
+   capture:observation=>{
+     const rows=[...document.querySelectorAll("#trials tr")];
+     const row=rows.find(r=>[...r.querySelectorAll("input")].every(x=>!x.value))||rows[rows.length-1];
+     if(!row)return;const ins=[...row.querySelectorAll("input")];
+     ins[0].value=observation.surface+"; a="+observation.legSpacing+" mm";
+     ins[1].value=observation.corrected.toFixed(3)+" mm; h="+observation.displacement.toFixed(3)+" mm";
+     ins[2].value="SIMULATED reading; LC="+observation.leastCount.toFixed(3)+" mm";
+   }
+ });
+}
 }
 function update(){const p=practicals.find(x=>x.id===selected);const out=computed(p,values);if(out)$("out").textContent=out[0]+": "+round(out[1])+" "+out[2];if(threeLab)threeLab.update(p,values);if(viewMode==="2d")draw()}
 function draw(){const canvas=$("labcanvas");if(!canvas)return;const p=practicals.find(x=>x.id===selected);if(p)paintApparatus(canvas,p,values,anim)}
