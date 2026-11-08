@@ -3,6 +3,7 @@ import {paintApparatus} from "./apparatus.js";
 import {mountLab3D} from "./lab3d.js";
 import {guideFor} from "./practical-guides.js";
 import {attachSpherometerWorkbench} from "./spherometer-workbench.js";
+import {mountGuidedWorkbench} from "./guided-practical-workbench.js";
 const $=id=>document.getElementById(id);
 const modelSpecs={
 vernier:[["Main scale (mm)",21,0,90,1],["Coinciding division",4,0,9,1],["Least count (mm)",0.1,.01,.1,.01]],
@@ -191,6 +192,24 @@ if(spec){const capture=document.createElement("button");capture.type="button";ca
 let reset=document.createElement("button");reset.className="secondary";reset.textContent=t("Clear worksheet","වාර්තාව මකන්න");reset.onclick=()=>{document.querySelectorAll("#trials input").forEach(x=>x.value="");samples.length=0;plotSamples()};actions.append(reset);
 let source=document.createElement("a");source.href=NIE_HANDBOOK;source.target="_blank";source.rel="noopener noreferrer";source.textContent=t("Open official NIE guide ↗","NIE අත්පොත බලන්න ↗");actions.append(source);detail.append(actions);
 let safety=document.createElement("p");safety.className="muted";safety.textContent=t("For demonstrations involving heated liquids, electricity, glassware or instruments, follow your teacher's instructions. This virtual model cannot replace practical skills.","උණුසුම් ද්‍රව්‍ය, විදුලිය, වීදුරු උපකරණ සහ මිනුම් උපකරණ භාවිතයේදී ගුරු උපදෙස් අනුගමනය කරන්න.");detail.append(safety);
+if(p.id!=="03"&&spec){
+ const workbench=document.createElement("div");workbench.className="guided-workbench-section";
+ detail.insertBefore(workbench,detail.querySelector(".study-guide"));
+ const station=mountGuidedWorkbench(workbench,{
+  experiment:p,parameters:spec,guide:guideFor(p),
+  getValues:()=>values.slice(),
+  setValues:next=>{
+   values=next;
+   Array.from($("sliders").children).forEach((row,i)=>{
+    if(!spec[i])return;
+    const input=row.querySelector("input"),display=row.querySelector("b");
+    if(input)input.value=values[i];if(display)display.textContent=String(values[i])
+   });
+   update();
+  },
+  calculate:vals=>computed(p,vals)
+ });
+}
 if(p.id==="03"&&workbenchMount){
  $("sliders").children[1]?.setAttribute("hidden","");
  attachSpherometerWorkbench(workbenchMount,{
