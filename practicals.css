@@ -118,3 +118,25 @@
 .drag-toolbar button.chosen{background:#7659d0;color:white;border-color:#9b8bec}
 .drag-status{background:#163b3c;border:1px solid #306e6b;color:#a8f6d4;font-size:12px;border-radius:9px;padding:11px 12px;margin:0;line-height:1.5}
 @media(max-width:600px){.drag-toolbar button{flex:1;padding:10px}.drag-help{padding:13px}.drag-help>span{font-size:11px}}
+
+/* Cinematic individual-experiment styling */
+.detail{--lab-accent:#b8a1ff;--lab-aura:#7557d355}
+.detail[data-category="measurements"]{--lab-accent:#70d7ff;--lab-aura:#56a6d355}
+.detail[data-category="mechanics"]{--lab-accent:#ffba70;--lab-aura:#df915555}
+.detail[data-category="oscillations-waves"]{--lab-accent:#b4a1ff;--lab-aura:#8777e055}
+.detail[data-category="optics"]{--lab-accent:#7bebf0;--lab-aura:#49bfe355}
+.detail[data-category="thermal-physics"]{--lab-accent:#ff9b8d;--lab-aura:#d0735c55}
+.detail[data-category="electricity"]{--lab-accent:#8bc7ff;--lab-aura:#5a94d155}
+.detail[data-category="electronics"]{--lab-accent:#caadff;--lab-aura:#9560db55}
+.detail[data-category="properties-of-matter"]{--lab-accent:#8af7c7;--lab-aura:#4cae8555}
+.detail .labcard{position:relative;border:1px solid var(--lab-accent);box-shadow:0 24px 72px #02061466,0 0 42px var(--lab-aura);border-radius:20px;overflow:hidden}
+.detail .labhead{background:linear-gradient(115deg,#273853,#17233d);border-bottom:1px solid #506485}
+.detail .labhead strong{color:var(--lab-accent);font-size:15px;letter-spacing:.4px}
+.detail .viewcontrols{background:linear-gradient(125deg,#1b2944,#101b2b);border-bottom:1px solid #394d6d}
+.detail .viewmode.active{background:linear-gradient(125deg,#6151b6,#9475ec);border-color:var(--lab-accent);box-shadow:0 0 18px var(--lab-aura)}
+.detail .lab3d{border-bottom:1px solid #354663;background:radial-gradient(ellipse at 50% 40%,var(--lab-aura),#101b2d 80%)}
+.detail .lab3d::after{background:#0d1d36cc;border:1px solid #506a8a;color:#b8d1e3}
+.detail .precision-live,.detail .tag{letter-spacing:.8px}
+.cards .item.selected{box-shadow:0 4px 21px #6e68cb2b;border-color:#9f87fb}
+.cards .item:hover{transform:translateY(-2px);transition:transform .17s ease,box-shadow .17s ease}
+@media(max-width:650px){.detail .lab3d{height:355px}.detail .labhead strong{font-size:13px}}
