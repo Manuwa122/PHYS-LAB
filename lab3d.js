@@ -41,6 +41,63 @@ export function mountLab3D(host){
  const softFill=new THREE.PointLight(0xc2dcff,24,13);softFill.position.set(0,6,-3);scene.add(softFill);
 
  let objects=new THREE.Group();let moving=[];scene.add(objects);
+ // Drag-and-place training props are actual 3D objects, not arbitrary scene geometry.
+ let dragEnabled=true,dragItem=null,dragOffset=new THREE.Vector3(),selectedPointer=null;
+ let interactionListener=()=>{};
+ const pickables=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+ const benchPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.62);
+ const hitPoint=new THREE.Vector3();
+ const addPickable=(obj,name,home,target,threshold=.65)=>{
+   const info={obj,name,home:new THREE.Vector3(...home),target:new THREE.Vector3(...target),threshold};
+   obj.position.copy(info.home);obj.userData.dragItem=info;pickables.push(info);return obj;
+ };
+ const handleSelection=(event)=>{const r=renderer.domElement.getBoundingClientRect();pointer.set(((event.clientX-r.left)/r.width)*2-1,-((event.clientY-r.top)/r.height)*2+1);raycaster.setFromCamera(pointer,camera)};
+ const onDown=event=>{
+   if(!dragEnabled||event.button>0||!pickables.length)return;
+   handleSelection(event);
+   const hits=raycaster.intersectObjects(pickables.map(item=>item.obj),true);
+   if(!hits.length)return;
+   let obj=hits[0].object;
+   while(obj&&!obj.userData.dragItem)obj=obj.parent;
+   if(!obj?.userData.dragItem)return;
+   dragItem=obj.userData.dragItem;selectedPointer=event.pointerId;
+   const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-dragItem.obj.position.y);
+   if(raycaster.ray.intersectPlane(plane,hitPoint))dragOffset.copy(dragItem.obj.position).sub(hitPoint);
+   else dragOffset.set(0,0,0);
+   controls.enabled=false;renderer.domElement.setPointerCapture?.(event.pointerId);
+   renderer.domElement.style.cursor="grabbing";
+   event.preventDefault();
+   interactionListener({type:"selected",name:dragItem.name});
+ };
+ const onMove=event=>{
+   if(!dragItem||selectedPointer!==event.pointerId)return;
+   handleSelection(event);
+   const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-dragItem.home.y);
+   if(raycaster.ray.intersectPlane(plane,hitPoint)){
+     const pos=hitPoint.clone().add(dragOffset);
+     dragItem.obj.position.x=Math.max(-3.5,Math.min(3.5,pos.x));
+     dragItem.obj.position.z=Math.max(-2.35,Math.min(2.35,pos.z));
+     dragItem.obj.position.y=dragItem.home.y;
+   }
+   event.preventDefault();
+ };
+ const finishDrag=event=>{
+   if(!dragItem||selectedPointer!==event.pointerId)return;
+   const item=dragItem;
+   const distance=item.obj.position.distanceTo(item.target);
+   const placed=distance<=item.threshold;
+   if(placed)item.obj.position.copy(item.target);
+   controls.enabled=true;renderer.domElement.style.cursor="grab";
+   try{if(renderer.domElement.hasPointerCapture?.(event.pointerId))renderer.domElement.releasePointerCapture(event.pointerId)}catch{}
+   selectedPointer=null;dragItem=null;
+   interactionListener({type:placed?"placed":"released",name:item.name,placed,remaining:pickables.filter(it=>it.obj.position.distanceTo(it.target)>it.threshold).length});
+ };
+ renderer.domElement.addEventListener("pointerdown",onDown);
+ renderer.domElement.addEventListener("pointermove",onMove);
+ renderer.domElement.addEventListener("pointerup",finishDrag);
+ renderer.domElement.addEventListener("pointercancel",finishDrag);
+ renderer.domElement.style.cursor="grab";
+
  const add=(geo,m,x=0,y=0,z=0,parent=objects)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o};
  const box=(w,h,d,x,y,z,m=metal,parent=objects)=>add(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent);
  const sphere=(r,x,y,z,m=gold,parent=objects)=>add(new THREE.SphereGeometry(r,24,16),m,x,y,z,parent);
@@ -250,6 +307,55 @@ export function mountLab3D(host){
    label("VERTICAL VERNIER SCALE",-1.4,3.35,0);
    label("FOCUS / HORIZONTAL CARRIAGE",1.1,2.55,0);
  }
+
+ function makeInteractiveEquipment(p,v){
+   // Moveable real geometry representing each practical's accessory or test sample.
+   // The user must drag it from the storage tray to the marked work zone.
+   const station=mat(0x274b49,.3,.6),border=mat(0x71f1cb,.2,.4,{transparent:true,opacity:.7});
+   const home=[-2.45,.68,1.63],target=[1.45,.68,.65];
+   box(1.8,.04,1.3,home[0],.51,home[2],mat(0x45566d,.5,.36));
+   box(1.8,.04,1.3,target[0],.51,target[2],station);
+   const ring=tor(.48,.023,target[0],.56,target[2],border);ring.rotation.x=Math.PI/2;
+   const block=new THREE.Group();objects.add(block);
+   const style=p.model;
+   let name="Test specimen";
+   if(["lens","concave","prism","critical","angles","refractive"].includes(style)){
+      name=style==="lens"||style==="concave"?"Optical lens":"Glass prism";
+      if(style==="lens"||style==="concave"){const glassDisc=add(new THREE.SphereGeometry(.45,24,16),glass,0,.25,0,block);glassDisc.scale.x=.2}
+      else{let prism=add(new THREE.CylinderGeometry(.42,.42,.55,3),glass,0,.25,0,block);prism.rotation.y=.4}
+   }else if(["cell","temperature","potentiometer","internal","diode","transistor","gates"].includes(style)){
+      name="Circuit component";
+      add(new THREE.BoxGeometry(.76,.29,.36),dark,0,.15,0,block);
+      for(let i=-1;i<=1;i++)rod([i*.25,.15,-.3],[i*.25,.15,.3],.018,metal,block);
+   }else if(["sonometer","resonance","wave","spring","pendulum"].includes(style)){
+      name=style==="resonance"?"Tuning fork":"Calibration weight";
+      if(style==="resonance"){
+       rod([-.18,.06,0],[-.18,.66,0],.038,metal,block);
+       rod([.18,.06,0],[.18,.66,0],.038,metal,block);
+       rod([0,.05,0],[0,-.07,0],.06,metal,block);
+      }else{
+       add(new THREE.CylinderGeometry(.34,.34,.35,20),gold,0,.2,0,block);
+       add(new THREE.TorusGeometry(.16,.03,9,24),metal,0,.41,0,block).rotation.x=Math.PI/2;
+      }
+   }else if(["calorimetry","fusion","vapor","cooling","humidity","gas","charles","pressure","conductivity"].includes(style)){
+      name="Thermal sample vessel";
+      add(new THREE.CylinderGeometry(.34,.28,.6,24),glass,0,.31,0,block);
+      add(new THREE.CylinderGeometry(.28,.26,.2,24),water,0,.15,0,block);
+   }else if(["vernier","micrometer","spherometer"].includes(style)||p.id==="04"){
+      name=p.id==="04"?"Microscope glass slide":style==="spherometer"?"Glass specimen":"Metal test piece";
+      add(new THREE.BoxGeometry(.8,.12,.5),style==="spherometer"||p.id==="04"?glass:metal,0,.11,0,block);
+   }else{
+      name="Experiment test mass";
+      add(new THREE.CylinderGeometry(.34,.34,.38,20),gold,0,.22,0,block);
+   }
+   const bbox=new THREE.Box3().setFromObject(block);
+   // Invisible stable hit target covers complex thin equipment while retaining raycasting.
+   const hitMesh=new THREE.Mesh(new THREE.BoxGeometry(1.05,.75,.85),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+   hitMesh.position.set(0,.3,0);block.add(hitMesh);
+   addPickable(block,name,home,target,.65);
+   label("PICK UP & PLACE",home[0],1.35,home[2]);
+   label("WORK ZONE",target[0],1.3,target[2]);
+ }
  function apparatus(p,v){
  moving=[];const n=p.id;
  const style=p.model;
@@ -304,7 +410,7 @@ export function mountLab3D(host){
  }else{box(3,.5,2,0,.65,0,metal);label(p.title,0,2.25,0)}
  }
  let initialized=false;
- function update(p,values){for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}apparatus(p,values);if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
+ function update(p,values){for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
  let active=true,frame=0,last=0;
  function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
  requestAnimationFrame(render);
@@ -314,6 +420,9 @@ export function mountLab3D(host){
   const pos={front:[0,3,9],side:[9,3,0],top:[.1,10,.1],iso:[7,5.5,8]}[preset]||[7,5.5,8];
   camera.position.set(...pos);controls.target.set(0,1.35,0);controls.update();
  }
- function dispose(){active=false;controls.dispose();objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
- return {update,resetCamera,setCameraView,setSurfaceMode,dispose};
+ function setDragEnabled(value){dragEnabled=!!value;renderer.domElement.style.cursor=dragEnabled?"grab":"auto"}
+ function resetEquipment(){for(const item of pickables)item.obj.position.copy(item.home);interactionListener({type:"reset",remaining:pickables.length})}
+ function setInteractionListener(fn){interactionListener=typeof fn==="function"?fn:()=>{};return()=>{interactionListener=()=>{}}}
+ function dispose(){active=false;controls.dispose();renderer.domElement.removeEventListener("pointerdown",onDown);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
+ return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,dispose};
 }
