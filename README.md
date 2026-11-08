@@ -1,6 +1,13 @@
-# PHYS·LAB — Interactive Physics Academy
+# PHYS-LAB — Interactive Physics Academy
 
-Responsive bilingual (English/Sinhala) starter for a Physics learning platform. The interactive projectile, pendulum and wave labs are implemented with Canvas; the 3D orbit uses Three.js. Includes curated external videos, official paper portals, a sample MCQ quiz, and an optional AI tutor endpoint.
+A responsive prototype physics learning platform with English/Sinhala navigation and interactive educational experiments.
+
+## Features
+- Projectile motion (idealized trajectory), simple pendulum (small-angle formula), traveling waves
+- Orbit *perspective visualization* (illustrative, not a physical N-body simulation or true WebGL 3D)
+- Videos and papers sections with third-party resource links
+- Five original sample MCQs
+- Optional AI Physics Tutor (server-side Vercel function; API key required)
 
 ## Run locally
 
@@ -11,21 +18,14 @@ npm install
 npm run dev
 ```
 
-Visit the URL printed by Vite. **The `/api/tutor` endpoint runs on Vercel, not Vite's development server.** The rest of the application works locally.
+The local Vite development server does not execute the /api/tutor Vercel function. AI responses require Vercel deployment and correct environment settings.
 
 ## Deploy to Vercel
+1. Import `Manuwa122/PHYS-LAB` from GitHub.
+2. Framework: Vite. Build command: `npm run build`. Output directory: `dist`.
+3. Set `OPENAI_API_KEY` as a **server-side** environment variable; optionally set `OPENAI_MODEL`. Do not commit API keys or expose them as VITE_*.
+4. Deploy and test the site.
 
-1. Create a GitHub repository and push this folder's contents to it.
-2. Import the repository in Vercel. Framework preset: Vite. Build: `npm run build`; output: `dist`.
-3. To activate actual AI answers, set `OPENAI_API_KEY` in Vercel Environment Variables, optionally `OPENAI_MODEL`, then redeploy. Never put secret keys in frontend files or GitHub.
-4. For production, add authentication, persistent content database, rate limiting, per-user quotas, and moderation for the tutor endpoint.
+## Status and limitations
+This is an initial prototype, not a production LMS. Sinhala translations cover primary navigation and some home-screen elements; exercise labels and other learning copy remain in English. The orbit is a pseudo-3D view, not a Three.js 3D simulation. Student accounts, permanent storage, admin uploads, private content, persistent grades, and video hosting are not implemented. Before publicly enabling the tutor, implement authentication, per-user quotas, rate limiting and safety checks to control AI spending.
 
-## Important limitations
-
-- This is an initial working prototype, not a production-ready LMS.
-- Sinhala translation currently covers main navigation and marketing copy, not every simulation label and quiz item.
-- The video section links to third-party learning libraries/search pages, without hosting or claiming ownership.
-- The papers section links to government educational portals; it does not contain copyrighted exam PDF downloads.
-- 3D requires internet access to load Three.js from a CDN.
-- The orbit visualization is a kinematic illustrative orbit, not a gravitational dynamics solver.
-- No student sign-in, storage, content management, uploaded video hosting or learner score persistence yet.
