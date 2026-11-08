@@ -85,6 +85,59 @@ export function mountLab3D(host){
    for(let i=0;i<24;i++)box(i%5===0?.16:.07,.009,.14,-1.37, .6+i*.105,.2,dark);
    label("SIMPLE PENDULUM",0,3.65,0);
  }
+
+ function detailedSonometer(v){
+  const wood=mat(0x986a3d,.08,.71),bridgeMat=mat(0xd1e0e7,.83,.24);
+  box(6,.28,1.35,0,.58,0,wood);
+  box(5.8,.07,1.13,0,.76,0,mat(0xc49b6a,.08,.56));
+  for(let i=0;i<50;i++){box(.012,.012,i%5===0?.25:.12,-2.85+i*.114,.806,-.43,dark)}
+  for(let z of [-.2,.26]){
+   rod([-2.72,1.05,z],[2.72,1.05,z],.012,metal);
+   box(.14,.42,.38,-1.6,1,z,bridgeMat);
+   box(.14,.42,.38,1.6,1,z,bridgeMat);
+  }
+  const x=Math.max(-1.6,Math.min(1.6,-1.6+(v[0]||.6)*2.7));
+  box(.17,.45,.88,x,1,0,bridgeMat);
+  rod([2.8,1.08,.1],[2.8,.27,.1],.025,gold);
+  cyl(.28,.28,.43,2.8,.35,.1,gold);
+  // Resonant tuning fork with suspended prongs.
+  box(.12,1.1,.14,-2.05,2,.1,bridgeMat);
+  box(.12,1.1,.14,-1.65,2,.1,bridgeMat);
+  box(.54,.12,.14,-1.85,1.5,.1,bridgeMat);
+  rod([-1.85,1.48,.1],[-1.85,.95,.1],.05,bridgeMat);
+  label("SONOMETER - METAL WIRE",0,2.9,0);
+  label("VIBRATING LENGTH L",0,.2,.4);
+ }
+ function detailedPrism(v){
+   const glassPrism=mat(0x8bd7f4,.15,.1,{transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide});
+   box(5.6,.17,3.3,0,.42,0,mat(0x3b4e65,.4,.37));
+   let prism=add(new THREE.CylinderGeometry(1.12,1.12,1.65,3),glassPrism,0,1.43,0);
+   prism.rotation.y=.47;
+   // Measured ray path and rotatable protractor markings.
+   cyl(1.7,1.7,.04,0,.54,0,mat(0xf0f4f9,.16,.48));
+   for(let i=0;i<36;i++){let a=i*Math.PI/18;const x=Math.cos(a)*1.55,z=Math.sin(a)*1.55;box(.045,.018,.12,x,.57,z,dark).rotation.y=a}
+   const incidence=(v[0]||60)*Math.PI/180;
+   rod([-2.55,1.46,.45],[-.8,1.46,.12],.033,red);
+   rod([-.8,1.46,.12],[.7,1.46,-.28],.033,gold);
+   rod([.7,1.46,-.28],[2.4,1.5,Math.sin(incidence)*.7],.033,green);
+   for(let i=0;i<3;i++)sphere(.045,-2+i*.3,1.46,.38-i*.04,red);
+   label("GLASS PRISM / LIGHT RAYS",0,3,0);
+ }
+ function detailedCircuit(v){
+   const plastic=mat(0x25364e,.2,.6),copper=mat(0xcb7d3b,.8,.22);
+   box(5,.15,3,0,.4,0,plastic);
+   for(let i=0;i<10;i++){for(let z of [-.7,.7])cyl(.045,.045,.04,-2.2+i*.5,.5,z,metal)}
+   for(let x of [-1.75,-1.05]){cyl(.24,.24,.76,x,.9,-.5,dark);cyl(.24,.24,.08,x,1.31,-.5,copper);cyl(.09,.09,.07,x,1.38,-.5,metal)}
+   box(1.1,.7,.55,1.4,.88,-.55,mat(0x465874,.3,.4));
+   cyl(.28,.28,.03,1.4,.97,-.25,white).rotation.x=Math.PI/2;
+   for(let i=0;i<7;i++)cyl(.015,.015,.055,1.23+i*.055,1.02,-.23,dark).rotation.x=Math.PI/2;
+   cyl(.14,.14,.6,.15,.86,.45,gold).rotation.z=Math.PI/2;
+   for(let i=0;i<4;i++)tor(.16,.025,-.05+i*.11,.86,.45,i%2?red:purple).rotation.y=Math.PI/2;
+   const lines=[[[-1.75,1.4,-.5],[-1.75,1.4,.9]],[[-1.75,1.4,.9],[.25,1.4,.9]],[[.25,1.4,.9],[1.4,1.25,.85]],[[1.4,1.25,.85],[1.4,1.17,-.55]],[[1.2,.8,-.55],[-1.05,.8,-.55]]];
+   for(let i=0;i<lines.length;i++)rod(lines[i][0],lines[i][1],.026,i%2?green:red);
+   label("LOW VOLTAGE EXPERIMENT",0,2.5,0);
+   label("CELL / RESISTOR / METER",0,.2,1.2);
+ }
  function apparatus(p,v){
  moving=[];const n=p.id;
  const style=p.model;
@@ -92,6 +145,9 @@ export function mountLab3D(host){
  if(style==="vernier"){realisticVernier(v);return}
  if(style==="micrometer"){realisticMicrometer(v);return}
  if(style==="pendulum"){realisticPendulum(v);return}
+ if(style==="sonometer"){detailedSonometer(v);return}
+ if(style==="prism"||style==="critical"||style==="angles"){detailedPrism(v);return}
+ if(style==="cell"||style==="temperature"||style==="potentiometer"||style==="internal"){detailedCircuit(v);return}
  if(["vernier","micrometer","spherometer"].includes(style)){
  ruler();if(style==="vernier"){box(.21,.95,.5,-1.45,.94,0,purple);box(.23,.95,.5,1.05+(v[0]||10)/80,.94,0,gold);box(1.3,.25,.5,-.7,.58,0,metal);label("Vernier scale",-.6,1.8,0)}
  if(style==="micrometer"){tor(1,.12,-1,1.25,0,metal).rotation.y=Math.PI/2;rod([-.3,1.2,0],[2,1.2,0],.21,metal);cyl(.42,.42,1.1,1.4,1.2,0,purple).rotation.z=Math.PI/2;label("Screw gauge",0,2.25,0)}
