@@ -189,11 +189,16 @@ export function mountLab3D(host){
  else label(style==="temperature"?"Copper wire & bridge":"EMF and resistance",0,2.25,0);
  }else{box(3,.5,2,0,.65,0,metal);label(p.title,0,2.25,0)}
  }
- function update(p,values){for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}apparatus(p,values);camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);controls.update()}
+ let initialized=false;
+ function update(p,values){for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}apparatus(p,values);if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
  let active=true,frame=0,last=0;
  function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
  requestAnimationFrame(render);
  function resetCamera(){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);controls.update()}
+ function setCameraView(preset){
+  const pos={front:[0,3,9],side:[9,3,0],top:[.1,10,.1],iso:[7,5.5,8]}[preset]||[7,5.5,8];
+  camera.position.set(...pos);controls.target.set(0,1.35,0);controls.update();
+ }
  function dispose(){active=false;controls.dispose();objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
- return {update,resetCamera,dispose};
+ return {update,resetCamera,setCameraView,dispose};
 }
