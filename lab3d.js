@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {buildDistinctApparatus} from "./lab-unique-scenes.js";
 /** True interactive WebGL 3D teaching scenes. Parametric equipment approximations, not scanned instrument replicas. */
 export function mountLab3D(host){
  const scene=new THREE.Scene();scene.background=new THREE.Color("#0b1427");
@@ -399,6 +400,7 @@ export function mountLab3D(host){
  moving=[];const n=p.id;
  const style=p.model;
  // every scene uses an apparatus-dependent 3D configuration
+ if(buildDistinctApparatus(scene,p,v,objects))return;
  if(p.id==="04"){travellingMicroscope(v);return}
  if(style==="spherometer"){spherometerInstrument(v);return}
  if(style==="vernier"){realisticVernier(v);return}
