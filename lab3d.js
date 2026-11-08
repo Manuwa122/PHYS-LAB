@@ -21,7 +21,10 @@ export function mountLab3D(host){
  // Science lab environment supplies its own wood worktop.
  // The instrument bench is clear of overlay grid lines.
  const disposeStudio=createScienceLab(scene,renderer);
- // Room fixtures, lighting and back wall are provided by science-lab-environment.js.\n let objects=new THREE.Group();let moving=[];scene.add(objects);
+ // Room fixtures, lighting and back wall are provided by science-lab-environment.js.
+ let objects=new THREE.Group();
+ let moving=[];
+ scene.add(objects);
  // Drag-and-place training props are actual 3D objects, not arbitrary scene geometry.
  let dragEnabled=true,dragItem=null,dragOffset=new THREE.Vector3(),selectedPointer=null;
  let interactionListener=()=>{};
