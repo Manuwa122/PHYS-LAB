@@ -111,6 +111,24 @@ const notice=document.createElement("div");notice.className="notice";notice.text
 if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="frontcam">Front</button><button type="button" class="viewmode" id="sidecam">Side</button><button type="button" class="viewmode" id="topcam">Top</button><button type="button" class="viewmode" id="resetcam">↺ Reset View</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
 const workbenchMount=p.id==="03"?document.createElement("div"):null;if(workbenchMount)lab.after(workbenchMount);
 const host=$("lab3d"),twoD=$("labcanvas");
+const dragPanel=document.createElement("div");dragPanel.className="drag-help";
+const dragHeading=document.createElement("strong");dragHeading.textContent="✋ Interactive equipment setup";
+const dragInfo=document.createElement("span");dragInfo.textContent="3D view: drag the movable test object from the storage tray into the green work zone. Drag empty space to rotate the camera.";
+const dragControls=document.createElement("div");dragControls.className="drag-toolbar";
+const moveMode=document.createElement("button");moveMode.type="button";moveMode.className="chosen";moveMode.textContent="✋ Move equipment";
+const orbitMode=document.createElement("button");orbitMode.type="button";orbitMode.textContent="◌ Orbit camera";
+const resetSetup=document.createElement("button");resetSetup.type="button";resetSetup.textContent="↺ Reset placement";
+const dragStatus=document.createElement("p");dragStatus.className="drag-status";dragStatus.textContent="Ready: select the movable equipment, then drag it into the work zone.";
+dragControls.append(moveMode,orbitMode,resetSetup);dragPanel.append(dragHeading,dragInfo,dragControls,dragStatus);
+lab.append(dragPanel);
+function showDragStatus(e){if(e.type==="selected")dragStatus.textContent="Holding "+e.name+". Drag to the highlighted green work zone.";
+else if(e.type==="placed")dragStatus.textContent="✓ "+e.name+" placed in work zone! Experiment setup completed.";
+else if(e.type==="released")dragStatus.textContent=e.name+" released outside target. Move it closer to the green work zone.";
+else if(e.type==="reset")dragStatus.textContent="Equipment moved back to storage tray. Try the setup again."}
+moveMode.onclick=()=>{threeLab?.setDragEnabled(true);moveMode.classList.add("chosen");orbitMode.classList.remove("chosen");dragStatus.textContent="Move mode: drag the specimen; drag empty space to rotate."};
+orbitMode.onclick=()=>{threeLab?.setDragEnabled(false);moveMode.classList.remove("chosen");orbitMode.classList.add("chosen");dragStatus.textContent="Camera mode: drag anywhere to rotate. Choose Move equipment to pick up objects."};
+resetSetup.onclick=()=>threeLab?.resetEquipment();
+
 const mode3d=$("mode3d"),mode2d=$("mode2d");
 function setView(mode){
  viewMode=mode;const three=mode==="3d";
@@ -119,7 +137,7 @@ function setView(mode){
  if(!three){draw();return}
  if(threeLab)return;
  try{
-  threeLab=mountLab3D(host);threeLab.update(p,values);
+  threeLab=mountLab3D(host);threeLab.update(p,values);threeLab.setInteractionListener(showDragStatus);threeLab.setDragEnabled(!orbitMode.classList.contains("chosen"));
  }catch(err){
   console.error("PHYS-LAB 3D initialization",err);
   const detail=String(err?.message||err||"Unknown error").slice(0,240);
