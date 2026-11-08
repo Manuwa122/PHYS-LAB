@@ -3,7 +3,7 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {buildDistinctApparatus} from "./lab-unique-scenes.js";
 import {createScienceLab} from "./science-lab-environment.js";
 /** True interactive WebGL 3D teaching scenes. Parametric equipment approximations, not scanned instrument replicas. */
-export function mountLab3D(host){
+export function mountLab3D(host,{onError}={}){
  const scene=new THREE.Scene();scene.background=new THREE.Color("#0b1427");
  const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(7,5.5,8);
  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
@@ -450,7 +450,24 @@ export function mountLab3D(host){
  key.color.setHex(palette.key);rim.color.setHex(palette.rim);
  const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
  let active=true,frame=0,last=0;
- function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
+ function render(ms){
+ if(!active)return;
+ try{
+   const dt=Math.min(.05,(ms-last)/1000||0);
+   last=ms;frame+=dt;
+   for(const fn of moving)fn(frame);
+   const w=host.clientWidth,h=host.clientHeight;
+   if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){
+     renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+   }
+   controls.update();renderer.render(scene,camera);
+   requestAnimationFrame(render);
+ }catch(error){
+   active=false;
+   console.error("PHYS-LAB 3D frame failed",error);
+   onError?.(error);
+ }
+}
  requestAnimationFrame(render);
  function resetCamera(){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);controls.update()}
  function setSurfaceMode(mode){scene.userData.surfaceMode=mode}
