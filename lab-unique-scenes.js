@@ -12,8 +12,16 @@ export function buildDistinctApparatus(scene,p,v,root){
   glass:0x86d9eb,water:0x1bafe0,brass:0xf1bd68,teal:0x48e2b9,
   lilac:0xac91f6,coral:0xff837d,blue:0x619df1,ice:0xcaf2fb,
   ceramic:0xe2e8ed,red:0xeb5c58,amber:0xf8ab52};
- const material=(col,metal=.2,rough=.34,extra={})=>new THREE.MeshStandardMaterial({color:col,metalness:metal,roughness:rough,...extra});
- const m={steel:material(c.steel,.75,.23),chrome:material(c.chrome,.85,.17),black:material(c.black,.3,.5),wood:material(c.wood,.05,.66),glass:material(c.glass,.1,.13,{transparent:true,opacity:.34,depthWrite:false,side:THREE.DoubleSide}),water:material(c.water,.15,.15,{transparent:true,opacity:.62}),brass:material(c.brass,.65,.25),teal:material(c.teal,.3,.28),lilac:material(c.lilac,.37,.26),red:material(c.coral,.25,.25),ceramic:material(c.ceramic,.12,.43),ice:material(c.ice,.12,.21)};
+ const material=(col,metal=.2,rough=.34,extra={})=>new THREE.MeshPhysicalMaterial({color:col,metalness:metal,roughness:rough,clearcoat:metal>.55?.28:.12,clearcoatRoughness:.23,...extra});
+ const m={
+  steel:material(c.steel,.82,.23),chrome:material(c.chrome,.91,.18),
+  black:material(c.black,.32,.44),wood:material(c.wood,.08,.62),
+  glass:material(c.glass,.02,.08,{transparent:true,opacity:.33,depthWrite:false,side:THREE.DoubleSide,clearcoat:1,clearcoatRoughness:.07}),
+  water:material(c.water,.03,.11,{transparent:true,opacity:.66,clearcoat:1}),
+  brass:material(c.brass,.78,.22),teal:material(c.teal,.33,.24),
+  lilac:material(c.lilac,.39,.25),red:material(c.coral,.29,.24),
+  ceramic:material(c.ceramic,.06,.36),ice:material(c.ice,.04,.15,{transparent:true,opacity:.84,clearcoat:.8})
+ };
  const mesh=(geo,mat,x=0,y=0,z=0,group=root)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;group.add(o);return o};
  const box=(w,h,d,x,y,z,mat=m.steel)=>mesh(new THREE.BoxGeometry(w,h,d),mat,x,y,z);
  const cyl=(r1,r2,h,x,y,z,mat=m.chrome)=>mesh(new THREE.CylinderGeometry(r1,r2,h,32),mat,x,y,z);
