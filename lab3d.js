@@ -7,7 +7,13 @@ export function mountLab3D(host,{onError}={}){
  const scene=new THREE.Scene();scene.background=new THREE.Color("#0b1427");
  const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(7,5.5,8);
  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=!/iPhone|iPad|Android/i.test(navigator.userAgent);renderer.outputColorSpace=THREE.SRGBColorSpace;
+ const mobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
+ let quality=mobile?"balanced":"high";
+ const maxRatio=typeof devicePixelRatio==="number"?devicePixelRatio:1;
+ const pixelRatioFor=mode=>Math.min(maxRatio,mode==="eco"?1:mode==="balanced"?1.35:1.8);
+ renderer.setPixelRatio(pixelRatioFor(quality));
+ renderer.shadowMap.enabled=!mobile;
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.28;
  host.append(renderer.domElement);renderer.domElement.style.cssText="display:block;width:100%;height:100%;touch-action:none";
  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=3;controls.maxDistance=20;controls.maxPolarAngle=Math.PI*.49;controls.target.set(0,1,0);
@@ -433,6 +439,34 @@ export function mountLab3D(host,{onError}={}){
  else label(style==="temperature"?"Copper wire & bridge":"EMF and resistance",0,2.25,0);
  }else{box(3,.5,2,0,.65,0,metal);label(p.title,0,2.25,0)}
  }
+ const sharedMaterials=new Set([metal,dark,gold,glass,water,purple,green,red,white]);
+ function clearObjects(){
+   const usedMaterials=new Set(),usedTextures=new Set();
+   for(const child of [...objects.children]){
+     objects.remove(child);
+     child.traverse(o=>{
+       o.geometry?.dispose?.();
+       if(o.material){
+         const arr=Array.isArray(o.material)?o.material:[o.material];
+         for(const material of arr){
+           if(!material||sharedMaterials.has(material))continue;
+           usedMaterials.add(material);
+           if(material.map)usedTextures.add(material.map);
+         }
+       }
+     });
+   }
+   for(const material of usedMaterials)material.dispose?.();
+   for(const texture of usedTextures)texture.dispose?.();
+ }
+ function setQuality(mode){
+   quality=["eco","balanced","high"].includes(mode)?mode:"balanced";
+   renderer.setPixelRatio(pixelRatioFor(quality));
+   renderer.shadowMap.enabled=quality==="high"&&!mobile;
+   const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
+   renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+   return quality;
+ }
  let initialized=false;
  function update(p,values){
  const palettes={
@@ -448,11 +482,16 @@ export function mountLab3D(host,{onError}={}){
  const palette=palettes[p.category]||palettes.Measurements;
  scene.background.setHex(palette.background);
  key.color.setHex(palette.key);rim.color.setHex(palette.rim);
- const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
- let active=true,frame=0,last=0;
+ const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));
+ clearObjects();
+ pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
+ let active=true,frame=0,last=0,lastDraw=0;
  function render(ms){
  if(!active)return;
  try{
+   if(!host.isConnected||document.hidden){requestAnimationFrame(render);return}
+   if(quality!=="high"&&ms-lastDraw<30){requestAnimationFrame(render);return}
+   lastDraw=ms;
    const dt=Math.min(.05,(ms-last)/1000||0);
    last=ms;frame+=dt;
    for(const fn of moving)fn(frame);
@@ -478,6 +517,6 @@ export function mountLab3D(host,{onError}={}){
  function setDragEnabled(value){dragEnabled=!!value;renderer.domElement.style.cursor=dragEnabled?"grab":"auto"}
  function resetEquipment(){for(const item of pickables)item.obj.position.copy(item.home);interactionListener({type:"reset",remaining:pickables.length})}
  function setInteractionListener(fn){interactionListener=typeof fn==="function"?fn:()=>{};return()=>{interactionListener=()=>{}}}
- function dispose(){active=false;controls.dispose();disposeStudio();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
- return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,dispose};
+ function dispose(){active=false;controls.dispose();clearObjects();for(const material of sharedMaterials)material.dispose?.();disposeStudio();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
+ return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,setQuality,getQuality:()=>quality,dispose};
 }
