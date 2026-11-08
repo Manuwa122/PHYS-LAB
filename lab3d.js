@@ -344,7 +344,6 @@ export function mountLab3D(host,{onError}={}){
       name="Experiment test mass";
       add(new THREE.CylinderGeometry(.34,.34,.38,20),gold,0,.22,0,block);
    }
-   const bbox=new THREE.Box3().setFromObject(block);
    // Invisible stable hit target covers complex thin equipment while retaining raycasting.
    const hitMesh=new THREE.Mesh(new THREE.BoxGeometry(1.05,.75,.85),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
    hitMesh.position.set(0,.3,0);block.add(hitMesh);
