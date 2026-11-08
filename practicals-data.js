@@ -1,4 +1,4 @@
-// Experiment labels follow NIE Physics Practical Handbook (2017 syllabus).
+// 43 indexed entries from the NIE A/L Physics practical list.
 export const practicals = [
   {
     "id": "01",
@@ -152,7 +152,7 @@ export const practicals = [
     "title": "Concave lens focal length by no-parallax method",
     "category": "Optics",
     "formula": "1/f = 1/u + 1/v (signed distances)",
-    "model": "notebook"
+    "model": "concave"
   },
   {
     "id": "22",
@@ -187,28 +187,28 @@ export const practicals = [
     "title": "Specific heat capacity of liquid by cooling",
     "category": "Thermal Physics",
     "formula": "Compare cooling rates with heat capacities",
-    "model": "notebook"
+    "model": "cooling"
   },
   {
     "id": "27",
     "title": "Latent heat of fusion of ice by mixtures",
     "category": "Thermal Physics",
     "formula": "Heat lost = mL + sensible heating",
-    "model": "notebook"
+    "model": "fusion"
   },
   {
     "id": "28",
     "title": "Latent heat of vaporization of water by mixtures",
     "category": "Thermal Physics",
     "formula": "Heat gained = mL + sensible cooling",
-    "model": "notebook"
+    "model": "vapor"
   },
   {
     "id": "29",
     "title": "Relative humidity using a polished calorimeter",
     "category": "Thermal Physics",
     "formula": "RH = pᵥ / pₛ × 100%",
-    "model": "notebook"
+    "model": "humidity"
   },
   {
     "id": "30",
@@ -285,7 +285,7 @@ export const practicals = [
     "title": "Surface tension using microscope slide",
     "category": "Properties of Matter",
     "formula": "F = γ × wetted contact length",
-    "model": "notebook"
+    "model": "slide"
   },
   {
     "id": "41",
@@ -299,7 +299,7 @@ export const practicals = [
     "title": "Surface tension by Jaeger’s method",
     "category": "Properties of Matter",
     "formula": "Pressure balance at bubbling threshold",
-    "model": "notebook"
+    "model": "jaeger"
   }
 ];
 export const NIE_HANDBOOK="https://nie.lk/pdffiles/other/eALOM%20PysicsPracBook.pdf";
