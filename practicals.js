@@ -1,5 +1,6 @@
 import {practicals,NIE_HANDBOOK} from "./practicals-data.js";
 import {paintApparatus} from "./apparatus.js";
+import {mountLab3D} from "./lab3d.js";
 const $=id=>document.getElementById(id);
 const modelSpecs={
 vernier:[["Main scale (mm)",21,0,90,1],["Coinciding division",4,0,9,1],["Least count (mm)",0.1,.01,.1,.01]],
@@ -44,6 +45,7 @@ slide:[["Force (mN)",12,1,25,.5],["Slide width (cm)",7,2,12,.5]],
 jaeger:[["Threshold pressure (Pa)",1650,600,2500,25],["Liquid depth (cm)",12,2,20,1],["Tube radius (mm)",.4,.1,1,.05],["Liquid density (kg/m³)",1000,700,1200,10]]
 });
 let selected="10",language="en",params=[],values=[],anim=0;
+let threeLab=null,viewMode="3d";
 const cats=[...new Set(practicals.map(x=>x.category))];
 for(const cat of cats){let opt=document.createElement("option");opt.value=cat;opt.textContent=cat;$("category").append(opt)}
 $("modelCount").textContent=practicals.filter(x=>modelSpecs[x.model]).length;
@@ -97,12 +99,18 @@ case "jaeger":return ["Surface tension (ideal)",((a-d*9.81*b/100)*(c/1000)/2),"N
 default:return null;
 }}
 function round(n){if(!Number.isFinite(n))return "Invalid inputs";if(Math.abs(n)>1e5||Math.abs(n)<.0001&&n!==0)return n.toExponential(3);return Number(n.toFixed(5)).toString()}
-function show(){const p=practicals.find(x=>x.id===selected);if(!p)return;const spec=modelSpecs[p.model];params=spec||[];values=params.map(x=>x[1]);const detail=$("detail");detail.innerHTML="";
+function show(){if(threeLab){threeLab.dispose();threeLab=null}const p=practicals.find(x=>x.id===selected);if(!p)return;const spec=modelSpecs[p.model];params=spec||[];values=params.map(x=>x[1]);const detail=$("detail");detail.innerHTML="";
 const top=document.createElement("div");top.className="detailtop";top.innerHTML='<span class="tag">PRACTICAL #'+p.id+'</span><span class="tag"></span>';top.lastElementChild.textContent=spec?t("ANIMATED APPARATUS","සජීවී උපකරණ අනුකරණය"):t("GUIDED WORKSHEET","අධ්‍යයන වාර්තාව");detail.append(top);
 const h=document.createElement("h2");h.className="title";h.textContent=p.title;detail.append(h);
 const sub=document.createElement("p");sub.className="muted";sub.textContent=p.category+" • "+t("Based on NIE's numbered list, not a substitute for the official experimental method.","NIE පරීක්ෂණ ලැයිස්තුව ඇසුරින්. නිල ක්‍රමවේදයට ආදේශයක් නොවේ.");detail.append(sub);
 const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Animated apparatus and adjustable parameters provide idealized illustrations. They are not real measurements or certified apparatus simulators.","උපකරණ අනුකරණ සහ පාලක අගයන් අධ්‍යයන ආකෘති පමණි; සැබෑ මිනුම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
-if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><canvas class="labcanvas" id="labcanvas"></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="resetcam">↺ Camera</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+const host=$("lab3d"),twoD=$("labcanvas");
+const mode3d=$("mode3d"),mode2d=$("mode2d");
+function setView(mode){viewMode=mode;const three=mode==="3d";host.hidden=!three;twoD.hidden=three;mode3d.classList.toggle("active",three);mode2d.classList.toggle("active",!three);if(three){if(!threeLab){try{threeLab=mountLab3D(host);threeLab.update(p,values)}catch(err){host.textContent="WebGL 3D is unavailable on this device. Use 2D mode.";console.error(err);}}}else draw();}
+mode3d.onclick=()=>setView("3d");mode2d.onclick=()=>setView("2d");
+$("resetcam").onclick=()=>threeLab?.resetCamera();
+setView(viewMode);
 const transport=document.createElement("div");transport.className="simtransport";const toggle=document.createElement("button");toggle.type="button";toggle.textContent="Ⅱ Pause";toggle.onclick=()=>{motion=!motion;toggle.textContent=motion?"Ⅱ Pause":"▶ Play";draw()};const restart=document.createElement("button");restart.type="button";restart.textContent="↺ Restart";restart.onclick=()=>{anim=0;motion=true;show()};transport.append(toggle,restart);lab.append(transport);
 spec.forEach((s,i)=>{const label=document.createElement("label");const title=document.createElement("span");title.textContent=s[0];let val=document.createElement("b");val.textContent=s[1];let input=document.createElement("input");input.type="range";input.min=s[2];input.max=s[3];input.step=s[4];input.value=s[1];input.oninput=()=>{values[i]=Number(input.value);val.textContent=values[i];update()};label.append(title,val,input);$("sliders").append(label)});update();
 }
@@ -118,8 +126,8 @@ let reset=document.createElement("button");reset.className="secondary";reset.tex
 let source=document.createElement("a");source.href=NIE_HANDBOOK;source.target="_blank";source.rel="noopener noreferrer";source.textContent=t("Open official NIE guide ↗","NIE අත්පොත බලන්න ↗");actions.append(source);detail.append(actions);
 let safety=document.createElement("p");safety.className="muted";safety.textContent=t("For demonstrations involving heated liquids, electricity, glassware or instruments, follow your teacher's instructions. This virtual model cannot replace practical skills.","උණුසුම් ද්‍රව්‍ය, විදුලිය, වීදුරු උපකරණ සහ මිනුම් උපකරණ භාවිතයේදී ගුරු උපදෙස් අනුගමනය කරන්න.");detail.append(safety);
 }
-function update(){const p=practicals.find(x=>x.id===selected);const out=computed(p,values);if(out)$("out").textContent=out[0]+": "+round(out[1])+" "+out[2];draw()}
+function update(){const p=practicals.find(x=>x.id===selected);const out=computed(p,values);if(out)$("out").textContent=out[0]+": "+round(out[1])+" "+out[2];if(threeLab)threeLab.update(p,values);if(viewMode==="2d")draw()}
 function draw(){const canvas=$("labcanvas");if(!canvas)return;const p=practicals.find(x=>x.id===selected);if(p)paintApparatus(canvas,p,values,anim)}
 let motion=true;
-function tick(){if(motion)anim+=.025;if($("labcanvas")&&motion)draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);
+function tick(){if(motion)anim+=.025;if($("labcanvas")&&motion&&viewMode==="2d")draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);
 drawList();show();
