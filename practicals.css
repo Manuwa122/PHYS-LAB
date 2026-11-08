@@ -140,3 +140,12 @@
 .cards .item.selected{box-shadow:0 4px 21px #6e68cb2b;border-color:#9f87fb}
 .cards .item:hover{transform:translateY(-2px);transition:transform .17s ease,box-shadow .17s ease}
 @media(max-width:650px){.detail .lab3d{height:355px}.detail .labhead strong{font-size:13px}}
+
+/* Professional instrument-showroom ambience */
+.detail .lab3d{background:radial-gradient(ellipse at 50% 32%,#3c517055,#0f1b2a 79%);box-shadow:inset 0 4px 30px #090f1c66}
+.detail .labhead{position:relative;overflow:hidden;background:linear-gradient(108deg,#273c50,#171c3a 72%)}
+.detail .labhead::after{content:"";position:absolute;right:-25px;top:-55px;width:155px;height:155px;border-radius:50%;background:radial-gradient(circle,var(--lab-aura),transparent 70%);pointer-events:none}
+.detail .labhead span{display:inline-flex;align-items:center;gap:6px;border:1px solid #4a6177;border-radius:30px;padding:6px 10px;background:#122a3988}
+.detail .labhead span::first-letter{color:#66e5bb}
+.detail .lab3d::after{content:"3D INSTRUMENT STUDIO  •  DRAG / PINCH TO EXPLORE";color:#daf0fd;letter-spacing:.7px}
+@media(prefers-reduced-motion:reduce){.cards .item:hover{transform:none}}
