@@ -451,7 +451,21 @@ export function mountLab3D(host){
  }else{box(3,.5,2,0,.65,0,metal);label(p.title,0,2.25,0)}
  }
  let initialized=false;
- function update(p,values){const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
+ function update(p,values){
+ const palettes={
+ "Measurements":{background:0x101b2b,key:0x9fd6ed,rim:0x54a6f4},
+ "Mechanics":{background:0x1b1727,key:0xffd7a0,rim:0xfd9e5a},
+ "Oscillations & Waves":{background:0x111c31,key:0xb8c6ff,rim:0x9475fb},
+ "Optics":{background:0x0d2233,key:0xb3e9ff,rim:0x56dbee},
+ "Thermal Physics":{background:0x261b20,key:0xffd0ad,rim:0xff986f},
+ "Electricity":{background:0x101d30,key:0xd1ecff,rim:0x69afea},
+ "Electronics":{background:0x18172c,key:0xe1c8ff,rim:0xa48aff},
+ "Properties of Matter":{background:0x102824,key:0xc1f1e7,rim:0x61deae}
+ };
+ const palette=palettes[p.category]||palettes.Measurements;
+ scene.background.setHex(palette.background);
+ key.color.setHex(palette.key);rim.color.setHex(palette.rim);
+ const positions=pickables.map(item=>({name:item.name,position:item.obj.position.clone()}));for(const child of [...objects.children]){objects.remove(child);child.traverse?.(o=>{o.geometry?.dispose();if(o.material?.map?.isCanvasTexture)o.material.map.dispose();if(o.material?.isSpriteMaterial)o.material.dispose()})}pickables.length=0;apparatus(p,values);makeInteractiveEquipment(p,values);for(const item of pickables){const previous=positions.find(x=>x.name===item.name);if(previous)item.obj.position.copy(previous.position)}if(!initialized){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);initialized=true}controls.update()}
  let active=true,frame=0,last=0;
  function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
  requestAnimationFrame(render);
