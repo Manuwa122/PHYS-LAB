@@ -82,6 +82,12 @@ export function mountLab3D(host,{onError}={}){
    selectedPointer=null;dragItem=null;
    interactionListener({type:placed?"placed":"released",name:item.name,placed,remaining:pickables.filter(it=>it.obj.position.distanceTo(it.target)>it.threshold).length});
  };
+ const onContextLost=event=>{
+   event.preventDefault();
+   console.error("PHYS-LAB WebGL context lost");
+   onError?.(new Error("The graphics context was lost. Try Eco graphics or reload the page."));
+ };
+ renderer.domElement.addEventListener("webglcontextlost",onContextLost,false);
  renderer.domElement.addEventListener("pointerdown",onDown,true);
  renderer.domElement.addEventListener("pointermove",onMove);
  renderer.domElement.addEventListener("pointerup",finishDrag);
@@ -517,6 +523,6 @@ export function mountLab3D(host,{onError}={}){
  function setDragEnabled(value){dragEnabled=!!value;renderer.domElement.style.cursor=dragEnabled?"grab":"auto"}
  function resetEquipment(){for(const item of pickables)item.obj.position.copy(item.home);interactionListener({type:"reset",remaining:pickables.length})}
  function setInteractionListener(fn){interactionListener=typeof fn==="function"?fn:()=>{};return()=>{interactionListener=()=>{}}}
- function dispose(){active=false;controls.dispose();clearObjects();for(const material of sharedMaterials)material.dispose?.();disposeStudio();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
+ function dispose(){active=false;controls.dispose();clearObjects();for(const material of sharedMaterials)material.dispose?.();disposeStudio();renderer.domElement.removeEventListener("webglcontextlost",onContextLost,false);renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
  return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,setQuality,getQuality:()=>quality,dispose};
 }
