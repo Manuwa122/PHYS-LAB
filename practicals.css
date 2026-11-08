@@ -28,3 +28,8 @@
 .lab3d{background:radial-gradient(ellipse at 50% 40%,#344d6e,#111a2b)}
 #out{font-size:15px;font-weight:600}
 @media(max-width:650px){.guide-grid{grid-template-columns:1fr}.study-heading{padding:16px}.guide-panel{padding:17px}}
+
+.measure-graph{background:#101b2f;border:1px solid #304262;border-radius:17px;padding:15px;margin-top:18px}
+.measure-graph h3{font-size:17px;color:#d9d0ff;margin:5px 2px 15px}
+.plotCanvas{width:100%;height:auto;border-radius:10px;display:block}
+.measure-graph p{margin:13px 3px 2px}
