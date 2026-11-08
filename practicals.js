@@ -105,7 +105,7 @@ const top=document.createElement("div");top.className="detailtop";top.innerHTML=
 const h=document.createElement("h2");h.className="title";h.textContent=p.title;detail.append(h);
 const sub=document.createElement("p");sub.className="muted";sub.textContent=p.category+" • "+t("Based on NIE's numbered list, not a substitute for the official experimental method.","NIE පරීක්ෂණ ලැයිස්තුව ඇසුරින්. නිල ක්‍රමවේදයට ආදේශයක් නොවේ.");detail.append(sub);
 const notice=document.createElement("div");notice.className="notice";notice.textContent=spec?t("Animated apparatus and adjustable parameters provide idealized illustrations. They are not real measurements or certified apparatus simulators.","උපකරණ අනුකරණ සහ පාලක අගයන් අධ්‍යයන ආකෘති පමණි; සැබෑ මිනුම් නොවේ."):t("An individual interactive apparatus model is not implemented for this practical yet. Use the worksheet and official NIE method to practice recording observations.","මෙම පරීක්ෂණයට විශේෂ උපකරණ අනුකරණයක් තවම නොමැත. NIE උපදෙස් සහ වාර්තා පත්‍රය භාවිත කරන්න.");detail.append(notice);
-if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="resetcam">↺ Camera</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
+if(spec){let lab=document.createElement("section");lab.className="labcard";lab.innerHTML='<div class="labhead"><strong>'+t("Interactive model","ගණිතමය අනුකරණය")+'</strong><span>● '+t("Adjust controls","අගයන් වෙනස් කරන්න")+'</span></div><div class="viewcontrols"><button type="button" class="viewmode active" id="mode3d">◈ 3D Equipment</button><button type="button" class="viewmode" id="mode2d">▧ 2D Animation</button><button type="button" class="viewmode" id="frontcam">Front</button><button type="button" class="viewmode" id="sidecam">Side</button><button type="button" class="viewmode" id="topcam">Top</button><button type="button" class="viewmode" id="resetcam">↺ Reset View</button></div><div id="lab3d" class="lab3d" aria-label="Interactive 3D physics apparatus"></div><canvas class="labcanvas" id="labcanvas" hidden></canvas><div class="sliders" id="sliders"></div><div class="out" id="out"></div>';detail.append(lab);
 const host=$("lab3d"),twoD=$("labcanvas");
 const mode3d=$("mode3d"),mode2d=$("mode2d");
 function setView(mode){
@@ -132,6 +132,9 @@ function setView(mode){
  }
 }
 mode3d.onclick=()=>setView("3d");mode2d.onclick=()=>setView("2d");
+$("frontcam").onclick=()=>threeLab?.setCameraView("front");
+$("sidecam").onclick=()=>threeLab?.setCameraView("side");
+$("topcam").onclick=()=>threeLab?.setCameraView("top");
 $("resetcam").onclick=()=>threeLab?.resetCamera();
 setView(viewMode);
 const transport=document.createElement("div");transport.className="simtransport";const toggle=document.createElement("button");toggle.type="button";toggle.textContent="Ⅱ Pause";toggle.onclick=()=>{motion=!motion;toggle.textContent=motion?"Ⅱ Pause":"▶ Play";draw()};const restart=document.createElement("button");restart.type="button";restart.textContent="↺ Restart";restart.onclick=()=>{anim=0;motion=true;show()};transport.append(toggle,restart);lab.append(transport);
