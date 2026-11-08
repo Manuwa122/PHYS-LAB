@@ -1,24 +1,26 @@
 import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {buildDistinctApparatus} from "./lab-unique-scenes.js";
+import {createPremiumLab} from "./premium-lab-studio.js";
 /** True interactive WebGL 3D teaching scenes. Parametric equipment approximations, not scanned instrument replicas. */
 export function mountLab3D(host){
  const scene=new THREE.Scene();scene.background=new THREE.Color("#0b1427");
  const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(7,5.5,8);
  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=!/iPhone|iPad|Android/i.test(navigator.userAgent);renderer.outputColorSpace=THREE.SRGBColorSpace;
- renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.45;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.28;
  host.append(renderer.domElement);renderer.domElement.style.cssText="display:block;width:100%;height:100%;touch-action:none";
  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=3;controls.maxDistance=20;controls.maxPolarAngle=Math.PI*.49;controls.target.set(0,1,0);
  scene.add(new THREE.HemisphereLight(0xc6d7ff,0x233043,2));
  const key=new THREE.DirectionalLight(0xffffff,3);key.position.set(5,10,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-8;key.shadow.camera.right=8;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;scene.add(key);
  const rim=new THREE.PointLight(0x8669ff,90,15);rim.position.set(-4,5,-3);scene.add(rim);
  const mat=(color,metalness=.15,roughness=.45,extra={})=>new THREE.MeshStandardMaterial({color,metalness,roughness,...extra});
- const metal=mat(0xcbd5de,.88,.18),dark=mat(0x1f2937,.5,.35),gold=mat(0xdd9a45,.6,.24),glass=mat(0x7ccfed,.05,.07,{transparent:true,opacity:.3,depthWrite:false,side:THREE.DoubleSide}),water=mat(0x35b4e8,.2,.12,{transparent:true,opacity:.7}),purple=mat(0x946fea,.5,.3),green=mat(0x4de5af,.3,.25),red=mat(0xf9757b,.35,.27),white=mat(0xf4f4ff,.1,.43);
+ const metal=new THREE.MeshPhysicalMaterial({color:0xd3dee9,metalness:.92,roughness:.19,clearcoat:.32,clearcoatRoughness:.22}),dark=mat(0x1b2b3f,.52,.3),gold=new THREE.MeshPhysicalMaterial({color:0xdaa05c,metalness:.84,roughness:.24,clearcoat:.3}),glass=new THREE.MeshPhysicalMaterial({color:0xb4edff,metalness:0,roughness:.09,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide,clearcoat:.9,clearcoatRoughness:.08}),water=new THREE.MeshPhysicalMaterial({color:0x35b7e8,metalness:0,roughness:.1,transparent:true,opacity:.65,clearcoat:1}),purple=mat(0x987beb,.42,.29),green=mat(0x4de5af,.35,.25),red=mat(0xf9757b,.33,.27),white=mat(0xf4f4ff,.08,.4);
  const bench=new THREE.Group();scene.add(bench);
  const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0x0c1425));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
  const table=new THREE.Mesh(new THREE.BoxGeometry(9,.18,6),mat(0x283c5a,.2,.62));table.position.y=.09;table.receiveShadow=true;scene.add(table);
- const grid=new THREE.GridHelper(10,20,0x405473,0x26344e);grid.position.y=.193;scene.add(grid);
+ const grid=new THREE.GridHelper(10,20,0x405473,0x26344e);grid.position.y=.193;grid.material.opacity=.24;grid.material.transparent=true;scene.add(grid);
+ const disposeStudio=createPremiumLab(scene,renderer);
  // Atmospheric school laboratory environment: workbench, tiled wall, shelves,
  // labelled glassware and soft overhead fluorescent lighting.
  const wallMaterial=mat(0x24344b,.05,.9),woodMaterial=mat(0x735443,.2,.7);
@@ -478,6 +480,6 @@ export function mountLab3D(host){
  function setDragEnabled(value){dragEnabled=!!value;renderer.domElement.style.cursor=dragEnabled?"grab":"auto"}
  function resetEquipment(){for(const item of pickables)item.obj.position.copy(item.home);interactionListener({type:"reset",remaining:pickables.length})}
  function setInteractionListener(fn){interactionListener=typeof fn==="function"?fn:()=>{};return()=>{interactionListener=()=>{}}}
- function dispose(){active=false;controls.dispose();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
+ function dispose(){active=false;controls.dispose();disposeStudio();renderer.domElement.removeEventListener("pointerdown",onDown,true);renderer.domElement.removeEventListener("pointermove",onMove);renderer.domElement.removeEventListener("pointerup",finishDrag);renderer.domElement.removeEventListener("pointercancel",finishDrag);objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
  return {update,resetCamera,setCameraView,setSurfaceMode,setDragEnabled,resetEquipment,setInteractionListener,dispose};
 }
