@@ -21,29 +21,7 @@ export function mountLab3D(host){
  // Science lab environment supplies its own wood worktop.
  // The instrument bench is clear of overlay grid lines.
  const disposeStudio=createScienceLab(scene,renderer);
- // Atmospheric school laboratory environment: workbench, tiled wall, shelves,
- // labelled glassware and soft overhead fluorescent lighting.
- const wallMaterial=mat(0x24344b,.05,.9),woodMaterial=mat(0x735443,.2,.7);
- const backWall=new THREE.Mesh(new THREE.PlaneGeometry(24,12),wallMaterial);
- backWall.position.set(0,4,-7);scene.add(backWall);
- const backsplash=new THREE.Mesh(new THREE.BoxGeometry(11,1.9,.1),mat(0x35516a,.15,.55));
- backsplash.position.set(0,1.15,-3.34);scene.add(backsplash);
- for(let i=0;i<4;i++){
-  const shelf=new THREE.Mesh(new THREE.BoxGeometry(3.5,.12,.55),woodMaterial);
-  shelf.position.set(-3.8+(i%2)*7.6,2.7+Math.floor(i/2)*1.65,-5.7);
-  scene.add(shelf);
-  for(let k=0;k<3;k++){
-   const flask=new THREE.Mesh(new THREE.CylinderGeometry(.08,.22,.45,12),mat([0x3b8eab,0x6b8e90,0x925cba][k],.1,.25,{transparent:true,opacity:.6}));
-   flask.position.set(shelf.position.x-.75+k*.6,shelf.position.y+.26,-5.7);scene.add(flask);
-  }
- }
- const framedBoard=new THREE.Mesh(new THREE.BoxGeometry(3.8,1.9,.08),mat(0x1d3644,.02,.86));
- framedBoard.position.set(0,3.5,-6.7);scene.add(framedBoard);
- const fluorescent=new THREE.Mesh(new THREE.BoxGeometry(5,.09,.22),new THREE.MeshBasicMaterial({color:0xcbdfff}));
- fluorescent.position.set(0,6.2,-3);scene.add(fluorescent);
- const softFill=new THREE.PointLight(0xc2dcff,24,13);softFill.position.set(0,6,-3);scene.add(softFill);
-
- let objects=new THREE.Group();let moving=[];scene.add(objects);
+ // Room fixtures, lighting and back wall are provided by science-lab-environment.js.\n let objects=new THREE.Group();let moving=[];scene.add(objects);
  // Drag-and-place training props are actual 3D objects, not arbitrary scene geometry.
  let dragEnabled=true,dragItem=null,dragOffset=new THREE.Vector3(),selectedPointer=null;
  let interactionListener=()=>{};
