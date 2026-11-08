@@ -18,6 +18,28 @@ export function mountLab3D(host){
  const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0x0c1425));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
  const table=new THREE.Mesh(new THREE.BoxGeometry(9,.18,6),mat(0x283c5a,.2,.62));table.position.y=.09;table.receiveShadow=true;scene.add(table);
  const grid=new THREE.GridHelper(10,20,0x405473,0x26344e);grid.position.y=.193;scene.add(grid);
+ // Atmospheric school laboratory environment: workbench, tiled wall, shelves,
+ // labelled glassware and soft overhead fluorescent lighting.
+ const wallMaterial=mat(0x24344b,.05,.9),woodMaterial=mat(0x735443,.2,.7);
+ const backWall=new THREE.Mesh(new THREE.PlaneGeometry(24,12),wallMaterial);
+ backWall.position.set(0,4,-7);scene.add(backWall);
+ const backsplash=new THREE.Mesh(new THREE.BoxGeometry(11,1.9,.1),mat(0x35516a,.15,.55));
+ backsplash.position.set(0,1.15,-3.34);scene.add(backsplash);
+ for(let i=0;i<4;i++){
+  const shelf=new THREE.Mesh(new THREE.BoxGeometry(3.5,.12,.55),woodMaterial);
+  shelf.position.set(-3.8+(i%2)*7.6,2.7+Math.floor(i/2)*1.65,-5.7);
+  scene.add(shelf);
+  for(let k=0;k<3;k++){
+   const flask=new THREE.Mesh(new THREE.CylinderGeometry(.08,.22,.45,12),mat([0x3b8eab,0x6b8e90,0x925cba][k],.1,.25,{transparent:true,opacity:.6}));
+   flask.position.set(shelf.position.x-.75+k*.6,shelf.position.y+.26,-5.7);scene.add(flask);
+  }
+ }
+ const framedBoard=new THREE.Mesh(new THREE.BoxGeometry(3.8,1.9,.08),mat(0x1d3644,.02,.86));
+ framedBoard.position.set(0,3.5,-6.7);scene.add(framedBoard);
+ const fluorescent=new THREE.Mesh(new THREE.BoxGeometry(5,.09,.22),new THREE.MeshBasicMaterial({color:0xcbdfff}));
+ fluorescent.position.set(0,6.2,-3);scene.add(fluorescent);
+ const softFill=new THREE.PointLight(0xc2dcff,24,13);softFill.position.set(0,6,-3);scene.add(softFill);
+
  let objects=new THREE.Group();let moving=[];scene.add(objects);
  const add=(geo,m,x=0,y=0,z=0,parent=objects)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o};
  const box=(w,h,d,x,y,z,m=metal,parent=objects)=>add(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent);
@@ -138,10 +160,70 @@ export function mountLab3D(host){
    label("LOW VOLTAGE EXPERIMENT",0,2.5,0);
    label("CELL / RESISTOR / METER",0,.2,1.2);
  }
+
+ function spherometerInstrument(v){
+  const [a=30,h=.6,pitch=.5,divisions=50]=v;
+  const brass=mat(0xd8a84f,.87,.23),goldLight=mat(0xf4cd81,.76,.22);
+  const iron=mat(0x353c46,.78,.3),chrome=mat(0xd8e2ee,.92,.16);
+  const ink=mat(0x262c36,.18,.8),clear=mat(0x85c4dd,.1,.12,{transparent:true,opacity:.38,depthWrite:false});
+  const mode=scene.userData.surfaceMode||"convex";
+  const legOffset=Math.max(.5,Math.min(1.0,a/34));
+  const points=[];
+  // Polished black three-arm frame and pointed steel support legs
+  const hub=new THREE.Vector3(0,1.37,0);
+  for(let i=0;i<3;i++){
+    const angle=i*2*Math.PI/3+.55;
+    const x=Math.cos(angle)*legOffset,z=Math.sin(angle)*legOffset;
+    points.push([x,z]);
+    rod([0,1.37,0],[x,1.37,z],.17,iron);
+    rod([x,1.34,z],[x,.63,z],.065,chrome);
+    const tip=add(new THREE.ConeGeometry(.084,.22,16),chrome,x,.55,z);tip.rotation.z=Math.PI;
+    cyl(.125,.125,.1,x,1.32,z,brass);
+  }
+  // Optically flat glass below the legs
+  const plate=cyl(2.1,2.1,.065,0,.425,0,clear);
+  const rim=tor(2.08,.018,0,.467,0,chrome);rim.rotation.x=Math.PI/2;
+  // Curved test specimen and slide, separate visibly colored material.
+  if(mode==="slide"){
+    box(1.38,.12,1.3,0,.53,0,clear);
+    box(1.36,.018,1.28,0,.60,0,mat(0xa7e8ef,.05,.1,{transparent:true,opacity:.4}));
+  }else if(mode==="convex"||mode==="concave"){
+    const shape=new THREE.SphereGeometry(1.33,48,18,0,Math.PI*2,mode==="convex"?0:Math.PI/2,Math.PI/2);
+    const test=add(shape,mat(0x72b8d5,.11,.13,{transparent:true,opacity:.33,side:THREE.DoubleSide,depthWrite:false}),0,mode==="convex"?-0.38:1.63,0);
+    test.scale.y=mode==="convex"?.12:-.12;
+  }
+  // Precision spindle with thread markings; driven by contact displacement
+  const rise=Math.max(-.45,Math.min(.52,h/2));
+  rod([0,.63+rise,0],[0,2.54+rise,0],.088,chrome);
+  const lowerTip=add(new THREE.ConeGeometry(.1,.2,20),chrome,0,.58+rise,0);lowerTip.rotation.z=Math.PI;
+  for(let j=0;j<22;j++){
+    let ring=tor(.098,.012,0,1.2+j*.049+rise,0,iron);ring.rotation.x=Math.PI/2;
+  }
+  // Engraved brass graduated circular scale
+  cyl(.92,.92,.09,0,2.30+rise,0,brass);
+  const disc=tor(.91,.018,0,2.36+rise,0,goldLight);disc.rotation.x=Math.PI/2;
+  for(let j=0;j<50;j++){
+    const angle=j*2*Math.PI/50;
+    const r=j%5===0?.68:.78;
+    rod([Math.cos(angle)*r,2.36+rise,Math.sin(angle)*r],[Math.cos(angle)*.86,2.36+rise,Math.sin(angle)*.86],j%5===0?.011:.006,ink);
+  }
+  cyl(.22,.22,.42,0,2.65+rise,0,brass);
+  for(let j=0;j<24;j++){
+    const angle=j*2*Math.PI/24;rod([.223*Math.cos(angle),2.44+rise,.223*Math.sin(angle)],[.223*Math.cos(angle),2.85+rise,.223*Math.sin(angle)],.012,iron);
+  }
+  // Vertical pitch scale with divisions on one support arm
+  box(.18,1.2,.07,1.28,1.69,0,brass);
+  for(let j=0;j<21;j++)box(j%5===0?.11:.055,.008,.08,1.28,1.15+j*.054,.045,ink);
+  rod([1.14,2.31+rise,0],[.98,2.31+rise,0],.017,ink);
+  label("SPHEROMETER  ·  BRASS + STEEL",0,3.55,0);
+  label("CENTRAL MICROMETER SCREW",1.68,2.7,.15);
+  label(mode==="flat"?"FLAT REFERENCE":mode==="slide"?"MICROSCOPE SLIDE":mode==="concave"?"CONCAVE SURFACE":"CONVEX SURFACE",0,.28,2.2);
+ }
  function apparatus(p,v){
  moving=[];const n=p.id;
  const style=p.model;
  // every scene uses an apparatus-dependent 3D configuration
+ if(style==="spherometer"){spherometerInstrument(v);return}
  if(style==="vernier"){realisticVernier(v);return}
  if(style==="micrometer"){realisticMicrometer(v);return}
  if(style==="pendulum"){realisticPendulum(v);return}
@@ -195,10 +277,11 @@ export function mountLab3D(host){
  function render(ms){if(!active)return;const dt=Math.min(.05,(ms-last)/1000||0);last=ms;frame+=dt;for(const f of moving)f(frame);const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}controls.update();renderer.render(scene,camera);requestAnimationFrame(render)}
  requestAnimationFrame(render);
  function resetCamera(){camera.position.set(7,5.5,8);controls.target.set(0,1.35,0);controls.update()}
+ function setSurfaceMode(mode){scene.userData.surfaceMode=mode}
  function setCameraView(preset){
   const pos={front:[0,3,9],side:[9,3,0],top:[.1,10,.1],iso:[7,5.5,8]}[preset]||[7,5.5,8];
   camera.position.set(...pos);controls.target.set(0,1.35,0);controls.update();
  }
  function dispose(){active=false;controls.dispose();objects.traverse(o=>{o.geometry?.dispose();if(o.material?.isSpriteMaterial){o.material.map?.dispose();o.material.dispose()}});renderer.dispose();renderer.domElement.remove()}
- return {update,resetCamera,setCameraView,dispose};
+ return {update,resetCamera,setCameraView,setSurfaceMode,dispose};
 }
