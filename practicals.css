@@ -33,3 +33,31 @@
 .measure-graph h3{font-size:17px;color:#d9d0ff;margin:5px 2px 15px}
 .plotCanvas{width:100%;height:auto;border-radius:10px;display:block}
 .measure-graph p{margin:13px 3px 2px}
+
+/* Interactive spherometer bench — precision-machined apparatus design language */
+.precision-lab{margin:18px 0 24px;border-radius:18px;border:1px solid #596688;overflow:hidden;background:linear-gradient(145deg,#202d48,#10192e 65%);box-shadow:0 20px 55px #02061366}
+.precision-title{padding:22px 24px 17px;display:flex;justify-content:space-between;align-items:start;gap:12px;background:linear-gradient(115deg,#303157,#19243b)}
+.precision-title h3{margin:8px 0 6px;font-size:21px;letter-spacing:-.4px}.precision-title p{margin:0;color:#b9c5de;font-size:12px;line-height:1.65}
+.precision-kicker{font-size:10px;letter-spacing:1.6px;color:#bfabff;font-weight:700}
+.precision-live{font-size:10px;color:#8ff4bd;letter-spacing:1px;border:1px solid #409d7e;background:#173e3b;border-radius:30px;padding:7px 9px;white-space:nowrap}
+.precision-options{display:flex;gap:9px;padding:16px 19px;flex-wrap:wrap;border-bottom:1px solid #344561}
+.precision-options button,.precision-buttons button{background:#2b3a58;border:1px solid #4b5b7e;border-radius:10px;color:#c9d9f2;padding:10px 13px;font-size:12px}
+.precision-options button.selected{background:#7461d4;border-color:#b7a9fa;color:white}
+.precision-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:18px 20px;gap:14px}
+.precision-grid label{font-size:12px;color:#aebed9;display:flex;flex-direction:column;gap:9px}
+.precision-grid select,.precision-grid input{width:100%;border:1px solid #405374;border-radius:9px;padding:11px;background:#121e33;color:#eef3ff}
+.precision-screw{padding:18px 20px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:center;border-top:1px solid #344562;border-bottom:1px solid #344562}
+.precision-screw strong,.precision-screw small{display:block}.precision-screw strong{font-size:14px}.precision-screw small{font-size:11px;color:#95a7c7;margin-top:5px}
+.precision-buttons{display:flex;gap:8px;flex-wrap:wrap}.precision-buttons button:last-child{background:#6951c2;color:#fff;border-color:#9f8ef1}
+.precision-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:18px}
+.precision-readouts>div{background:#111a2e;border:1px solid #384967;border-radius:12px;padding:13px}
+.precision-readouts span,.precision-result small{font-size:10px;color:#9bb2d1;display:block;line-height:1.5}
+.precision-readouts strong{font-size:16px;display:block;margin-top:8px;color:#eff2ff;font-variant-numeric:tabular-nums}
+.precision-message{font-size:12px;color:#83ebc1;margin:0 18px 16px}
+.precision-result{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:0 18px;padding:17px;background:#12393e;border:1px solid #317877;border-radius:12px}
+.precision-result strong{display:block;font-size:19px;margin-top:8px;color:#9af3d2}.precision-result span{display:block;margin-top:8px;color:#d5f5e9;font-size:12px;line-height:1.6}
+.precision-actions{display:flex;flex-wrap:wrap;gap:10px;padding:17px 18px}.precision-actions button{border:1px solid #7468ac;border-radius:9px;padding:11px 16px;color:white}
+.precision-steps{margin:0 18px 16px;padding:18px;background:#131e34;border:1px solid #354766;border-radius:12px;font-size:12px;line-height:1.8;color:#bfcee5}
+.precision-steps b{font-size:14px;color:#e9e4ff}.precision-steps ol{padding-left:20px;margin:10px 0 0}
+.precision-disclaimer{font-size:11px;color:#8294b1;line-height:1.65;margin:0;padding:0 18px 20px}
+@media(max-width:700px){.precision-grid,.precision-result{grid-template-columns:1fr}.precision-readouts{grid-template-columns:repeat(2,1fr)}.precision-title{padding:17px}.precision-title h3{font-size:17px}.precision-options{padding:12px}.precision-options button{flex:1}.precision-screw{padding:13px}.precision-screw strong{font-size:12px}}
