@@ -29,3 +29,10 @@ The local Vite development server does not execute the /api/tutor Vercel functio
 ## Status and limitations
 This is an initial prototype, not a production LMS. Sinhala translations cover primary navigation and some home-screen elements; exercise labels and other learning copy remain in English. The orbit is a pseudo-3D view, not a Three.js 3D simulation. Student accounts, permanent storage, admin uploads, private content, persistent grades, and video hosting are not implemented. Before publicly enabling the tutor, implement authentication, per-user quotas, rate limiting and safety checks to control AI spending.
 
+
+## Practical laboratory enrichment (November 2026)
+- Study-guide panels for all 43 entries: aims, equipment checklist, educational procedure outlines, precautions, viva prompts and recommended graphs. Some methods are topic-wide and must be checked against the NIE handbook before performing the actual experiment.
+- WebGL apparatus quality improvements for vernier callipers, micrometer screw gauge, simple pendulum, sonometer, prism and basic electrical circuits. Other scenes remain simplified procedural models, not real-equipment digital twins.
+- Metal/wood/glass material styling, mobile-friendly 3D render settings, and front/side/top camera views. Camera angle persists while adjusting controls.
+- Captured **simulated** readings can be charted as input vs predicted output. They are not real measurements and the plotted axes are generalized; consult each practical for the correct experimental graph.
+- More detailed 3D equipment, exact sensor behavior, interactive assembly, lab calibration, and full Sinhala translations remain future work.
