@@ -355,6 +355,45 @@ export function mountLab3D(host){
    addPickable(block,name,home,target,.65);
    label("PICK UP & PLACE",home[0],1.35,home[2]);
    label("WORK ZONE",target[0],1.3,target[2]);
+   // Second draggable instrument part: these are separately positionable and
+   // have their own highlighted assembly station.
+   const home2=[-2.5,.69,-1.6],target2=[2.45,.69,-1.4];
+   box(1.5,.04,1.13,home2[0],.51,home2[2],mat(0x4b5568,.5,.38));
+   box(1.5,.04,1.13,target2[0],.51,target2[2],station);
+   const secondZone=tor(.37,.022,target2[0],.56,target2[2],border);secondZone.rotation.x=Math.PI/2;
+   const accessory=new THREE.Group();objects.add(accessory);
+   let secondName="Calibration ruler";
+   if(p.id==="04"){
+      secondName="Microscope focusing knob";
+      add(new THREE.CylinderGeometry(.28,.28,.22,24),dark,0,.24,0,accessory).rotation.z=Math.PI/2;
+      for(let i=0;i<14;i++){let angle=2*Math.PI*i/14;rod([0,.24+.27*Math.sin(angle),.27*Math.cos(angle)],[.2,.24+.27*Math.sin(angle),.27*Math.cos(angle)],.011,metal,accessory)}
+   }else if(["cell","temperature","potentiometer","internal","diode","transistor","gates"].includes(style)){
+      secondName="Connecting lead";
+      rod([-.35,.18,-.18],[.35,.18,.18],.048,red,accessory);
+      sphere(.105,-.4,.18,-.2,metal,accessory);
+      sphere(.105,.4,.18,.2,metal,accessory);
+   }else if(["lens","concave","prism","critical","angles","refractive"].includes(style)){
+      secondName="Light source";
+      add(new THREE.BoxGeometry(.59,.3,.45),dark,0,.2,0,accessory);
+      sphere(.12,.34,.2,0,gold,accessory);
+   }else if(["sonometer","resonance","spring","pendulum"].includes(style)){
+      secondName="Metre scale";
+      add(new THREE.BoxGeometry(.98,.06,.22),metal,0,.16,0,accessory);
+      for(let i=0;i<10;i++)add(new THREE.BoxGeometry(.012,.009,i%5===0?.2:.11),dark,-.45+i*.1,.2,0,accessory);
+   }else if(["gas","charles","pressure","cooling","fusion","vapor","calorimetry","humidity","conductivity"].includes(style)){
+      secondName="Thermometer";
+      rod([0,.12,0],[0,.84,0],.035,metal,accessory);
+      sphere(.09,0,.12,0,red,accessory);
+   }else{
+      secondName="Measuring scale";
+      add(new THREE.BoxGeometry(.95,.07,.25),metal,0,.15,0,accessory);
+      for(let i=0;i<9;i++)add(new THREE.BoxGeometry(.012,.009,.15),dark,-.42+i*.1,.2,0,accessory);
+   }
+   const targetMesh=new THREE.Mesh(new THREE.BoxGeometry(.98,.85,.72),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+   targetMesh.position.y=.28;accessory.add(targetMesh);
+   addPickable(accessory,secondName,home2,target2,.63);
+   label("2ND TOOL",home2[0],1.34,home2[2]);
+   label("ASSEMBLY ZONE",target2[0],1.34,target2[2]);
  }
  function apparatus(p,v){
  moving=[];const n=p.id;
