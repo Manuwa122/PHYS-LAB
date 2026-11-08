@@ -137,7 +137,15 @@ function setView(mode){
  if(!three){draw();return}
  if(threeLab)return;
  try{
-  threeLab=mountLab3D(host);threeLab.update(p,values);threeLab.setInteractionListener(showDragStatus);threeLab.setDragEnabled(!orbitMode.classList.contains("chosen"));
+  threeLab=mountLab3D(host,{onError:error=>{
+  const message=String(error?.message||error).slice(0,250);
+  dragStatus.textContent="3D render error: "+message+" — 2D mode available.";
+  const warning=document.createElement("div");warning.className="renderer-alert";
+  warning.textContent="3D rendering stopped: "+message+" · Please share this error. Switched to 2D animation.";
+  lab.insertBefore(warning,lab.querySelector(".sliders"));
+  viewMode="2d";host.hidden=true;twoD.hidden=false;
+  mode3d.classList.remove("active");mode2d.classList.add("active");draw();
+}});threeLab.update(p,values);threeLab.setInteractionListener(showDragStatus);threeLab.setDragEnabled(!orbitMode.classList.contains("chosen"));
  }catch(err){
   console.error("PHYS-LAB 3D initialization",err);
   const detail=String(err?.message||err||"Unknown error").slice(0,240);
